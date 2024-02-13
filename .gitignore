@@ -1,0 +1,6 @@
+.vscode
+*.dblite
+*.o
+*.db
+*-lock
+out

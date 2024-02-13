@@ -1,0 +1,12 @@
+config:
+  name: MyWorld
+  seed: 722
+  width: 1000
+  height: 500
+  array:
+    - 1
+    - 2
+    - 3
+  inner:
+    a: aaa
+    b: 666
