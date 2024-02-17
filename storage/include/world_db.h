@@ -1,11 +1,14 @@
 #pragma once
 
+#include "chunk.h"
+
 #include <lmdb.h>
-#include "world_config.h"
+#include <memory>
+#include <cstdint>
+
 
 namespace lry
 {
-
     class WorldDB
     {
 
@@ -19,19 +22,23 @@ namespace lry
             return *instance_;
         }
 
-        ~WorldDB()
-        {
-            mdb_env_close(env_);
-            delete instance_;
-        }
+        std::unique_ptr<Chunk> loadChunk(const std::uint32_t x, const std::uint32_t z);
+        void saveChunk(Chunk *chunk);
+        ~WorldDB();
 
     private:
         WorldDB();
+        // 开始新事务
+        MDB_txn * beginTransaction(unsigned int flags);
+        // 提交事务，并释放scope_guard
+        void commitTransaction(MDB_txn * txn, auto &guard);
+        // 中断事务
+        void abortTransaction(MDB_txn * txn);
 
         static inline WorldDB *instance_ = nullptr;
 
         MDB_env *env_{nullptr};
-        MDB_dbi terrain_db_{}, chunks_db_{};
+        MDB_dbi terrain_db_{};
     };
 
 } // namespace lry

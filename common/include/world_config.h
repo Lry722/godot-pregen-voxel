@@ -9,10 +9,10 @@ namespace lry {
 class WorldConfig {
 public:
   STRUCT_WITH_PROPERTIES (Data, 
-    std::string name{"NONE"};
-    int32_t seed{722};
-    size_t height{512};
-    size_t width{1024};
+    std::string name;
+    std::int32_t seed;
+    std::size_t height;
+    std::size_t width;
   ) data;
 
 public:

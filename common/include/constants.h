@@ -1,3 +1,5 @@
+#pragma once
+
 #define CONSTANT_STRING(name, str) static const char *name = str;
 
 namespace lry
@@ -18,6 +20,8 @@ namespace lry
             CONSTANT_STRING(kDatabaseEnv, "world.db")
             CONSTANT_STRING(kTerrainDB, "terrain")
         }
+        static const unsigned int kMaxdbs = 8;
+        static const unsigned int kMapsize = 1073741824;
         static const unsigned int kPermission = 0664;
     }
 
