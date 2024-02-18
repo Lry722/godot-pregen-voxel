@@ -28,7 +28,7 @@ namespace lry
         PackedArray(const size_t size = 0, const size_t element_size = 4) noexcept : size_(size), element_size_(element_size), mask_((1ULL << element_size_) - 1), data_((size * element_size_ + kUnitSize - 1) / kUnitSize) {}
 
         size_t size() const { return size_; }
-        size_t elementSize() const { return mask_; }
+        size_t elementCapacity() const { return mask_; }
         bool empty() const { return size_ == 0; }
         size_t memory() const { return data_.size() * kUnitSize; }
 

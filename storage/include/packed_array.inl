@@ -9,6 +9,129 @@
 namespace lry
 {
 
+    static auto calcIndexInfo(const size_t index, const size_t element_size, const size_t unit_size)
+    {
+        return std::tuple{(index * element_size) / unit_size, (index * element_size) % unit_size};
+    }
+
+    static size_t minimumBitsRequired(auto n)
+    {
+        if (n == 0)
+        {
+            return 1;
+        }
+
+        size_t bits = 0;
+        while (n > 0)
+        {
+            n >>= 1;
+            bits++;
+        }
+        return bits;
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline void PackedArray<T>::resize(const size_t size)
+    {
+        size_ = size;
+        data_.resize((size_ * element_size_ + kUnitSize - 1) / kUnitSize);
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline void PackedArray<T>::push_back(const T value)
+    {
+        resize(size_ + 1);
+        set(size_ - 1, value);
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline T PackedArray<T>::get(const size_t index) const
+    {
+        if (index >= size_)
+            throw std::out_of_range(std::format("PackedArray: index {} out of range!", index));
+
+        const auto [index_in_data, index_in_unit] = calcIndexInfo(index, element_size_, kUnitSize);
+
+        // 读取当前unit中的位
+        T result{static_cast<T>((data_[index_in_data] >> index_in_unit) & mask_)};
+        if (kUnitSize - index_in_unit < element_size_)
+            // 读取超出当前unit的位
+            result |= ((data_[index_in_data + 1] << index_in_unit) & mask_);
+
+        return result;
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline void PackedArray<T>::set(const size_t index, const T value)
+    {
+        if (index >= size_)
+            throw std::out_of_range(std::format("PackedArray: index {} out of range!", index));
+
+        const auto [index_in_data, index_in_unit] = calcIndexInfo(index, element_size_, kUnitSize);
+
+        // 写入当前unit中的位
+        data_[index_in_data] = data_[index_in_data] & ~(mask_ << index_in_unit) | (value << index_in_unit);
+        if (kUnitSize - index_in_unit < element_size_)
+            // 写入超出当前unit的位
+            data_[index_in_data + 1] = data_[index_in_data + 1] & ~(mask_ >> (kUnitSize - index_in_unit)) | (value >> index_in_unit);
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline void PackedArray<T>::transform(const size_t element_size)
+    {
+        if (element_size == element_size_)
+            return;
+
+        PackedArray<T> tmp(size_, element_size);
+        for (int i = 0; i < size_; ++i)
+            tmp.set(i, get(i));
+
+        *this = std::move(tmp);
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline void PackedArray<T>::grow()
+    {
+        transform(element_size_ + 1);
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline void PackedArray<T>::fit()
+    {
+        if (empty())
+            return;
+
+        const T maximum = *std::max_element(cbegin(), cend());
+        transform(minimumBitsRequired(maximum));
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline void PackedArray<T>::serialize(std::ostringstream &oss)
+    {
+        fit();
+
+        oss.write(reinterpret_cast<char *>(&size_), sizeof(size_))
+            .write(reinterpret_cast<char *>(&element_size_), sizeof(element_size_))
+            .write(reinterpret_cast<char *>(data_.data()), data_.size() * sizeof(T));
+    }
+
+    template <typename T>
+        requires std::is_unsigned_v<T>
+    inline void PackedArray<T>::deserialize(std::istringstream &iss, const size_t size)
+    {
+        iss.read(reinterpret_cast<char *>(&size_), sizeof(size_))
+            .read(reinterpret_cast<char *>(&element_size_), sizeof(element_size_))
+            .read(reinterpret_cast<char *>(data_.data()), data_.size() * sizeof(T));
+    }
+
     template <typename T>
         requires std::is_unsigned_v<T>
     class PackedArray<T>::Access
@@ -156,128 +279,5 @@ namespace lry
         const PackedArray<T> *array_;
         size_t index_;
     };
-
-    static auto calcIndexInfo(const size_t index, const size_t element_size, const size_t unit_size)
-    {
-        return std::tuple{(index * element_size) / unit_size, (index * element_size) % unit_size};
-    }
-
-    size_t minimumBitsRequired(auto n)
-    {
-        if (n == 0)
-        {
-            return 1;
-        }
-
-        size_t bits = 0;
-        while (n > 0)
-        {
-            n >>= 1;
-            bits++;
-        }
-        return bits;
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline void PackedArray<T>::resize(const size_t size)
-    {
-        size_ = size;
-        data_.resize((size_ * element_size_ + kUnitSize - 1) / kUnitSize);
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline void PackedArray<T>::push_back(const T value)
-    {
-        resize(size_ + 1);
-        set(size_ - 1, value);
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline T PackedArray<T>::get(const size_t index) const
-    {
-        if (index >= size_)
-            throw std::out_of_range(std::format("PackedArray: index {} out of range!", index));
-
-        const auto [index_in_data, index_in_unit] = calcIndexInfo(index, element_size_, kUnitSize);
-
-        // 读取当前unit中的位
-        T result{static_cast<T>((data_[index_in_data] >> index_in_unit) & mask_)};
-        if (kUnitSize - index_in_unit < element_size_)
-            // 读取超出当前unit的位
-            result |= ((data_[index_in_data + 1] << index_in_unit) & mask_);
-
-        return result;
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline void PackedArray<T>::set(const size_t index, const T value)
-    {
-        if (index >= size_)
-            throw std::out_of_range(std::format("PackedArray: index {} out of range!", index));
-
-        const auto [index_in_data, index_in_unit] = calcIndexInfo(index, element_size_, kUnitSize);
-
-        // 写入当前unit中的位
-        data_[index_in_data] = data_[index_in_data] & ~(mask_ << index_in_unit) | (value << index_in_unit);
-        if (kUnitSize - index_in_unit < element_size_)
-            // 写入超出当前unit的位
-            data_[index_in_data + 1] = data_[index_in_data + 1] & ~(mask_ >> (kUnitSize - index_in_unit)) | (value >> index_in_unit);
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline void PackedArray<T>::transform(const size_t element_size)
-    {
-        if (element_size == element_size_)
-            return;
-
-        PackedArray<T> tmp(size_, element_size);
-        for (int i = 0; i < size_; ++i)
-            tmp.set(i, get(i));
-
-        *this = std::move(tmp);
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline void PackedArray<T>::grow()
-    {
-        transform(element_size_ + 1);
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline void PackedArray<T>::fit()
-    {
-        if (empty())
-            return;
-
-        const T maximum = *std::max_element(cbegin(), cend());
-        transform(minimumBitsRequired(maximum));
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline void PackedArray<T>::serialize(std::ostringstream &oss)
-    {
-        fit();
-
-        oss.write(reinterpret_cast<char *>(&size_), sizeof(size_))
-            .write(reinterpret_cast<char *>(&element_size_), sizeof(element_size_))
-            .write(reinterpret_cast<char *>(data_.data()), data_.size() * sizeof(T));
-    }
-
-    template <typename T>
-        requires std::is_unsigned_v<T>
-    inline void PackedArray<T>::deserialize(std::istringstream &iss, const size_t size)
-    {
-        iss.read(reinterpret_cast<char *>(&size_), sizeof(size_))
-            .read(reinterpret_cast<char *>(&element_size_), sizeof(element_size_))
-            .read(reinterpret_cast<char *>(data_.data()), data_.size() * sizeof(T));
-    }
 
 } // namespace lry

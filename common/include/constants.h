@@ -1,5 +1,6 @@
 #pragma once
 #include "typedefs.h"
+#include <lmdb.h>
 
 #define CONSTANT_STRING(name, str) static const char *name = str;
 
@@ -21,9 +22,9 @@ namespace lry
             CONSTANT_STRING(kDatabaseEnv, "world.db")
             CONSTANT_STRING(kTerrainDB, "terrain")
         }
-        static const size_t kMaxdbs = 8;
-        static const size_t kMapsize = 1073741824;
-        static const unsigned int kPermission = 0664;
+        static const MDB_dbi kMaxdbs = 4;
+        static const ::size_t kMapsize = 1073741824;
+        static const mdb_mode_t kPermission = 0664;
     }
 
     namespace storage
