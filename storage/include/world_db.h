@@ -22,7 +22,7 @@ namespace lry
             return *instance_;
         }
 
-        std::unique_ptr<Chunk> loadChunk(const std::uint32_t x, const std::uint32_t z);
+        std::unique_ptr<Chunk> loadChunk(const size_t x, const size_t z);
         void saveChunk(Chunk *chunk);
         ~WorldDB();
 

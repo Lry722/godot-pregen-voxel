@@ -1,25 +1,32 @@
 #pragma once
+#include "typedefs.h"
 #include <sstream>
 
-template <typename T>
-std::ostringstream &operator<<(std::ostringstream &oss, T &p)
+namespace lry
 {
-    std::streampos start_pos = oss.tellp();
-    oss.seekp(start_pos + sizeof(size_t));
-    p.serialize(oss);
-    size_t size{oss.tellp() - start_pos + sizeof(size_t)};
-    oss.seekp(start_pos);
-    oss.write(reinterpret_cast<char*>(&size), sizeof(size));
+    template <typename T>
+    std::ostringstream &operator<<(std::ostringstream &oss, T &p)
+    {
+        size_t size{0};
+        oss.write(reinterpret_cast<char *>(&size), sizeof(size));
+        const auto start_pos = oss.tellp();
+        p.serialize(oss);
+        const auto end_pos = oss.tellp();
+        size = static_cast<size_t>(end_pos - start_pos);
+        oss.seekp(start_pos - sizeof(size));
+        oss.write(reinterpret_cast<char *>(&size), sizeof(size));
+        oss.seekp(end_pos);
 
-    return oss;
-}
+        return oss;
+    }
 
-template <typename T>
-std::istringstream &operator>>(std::istringstream &iss, T &p)
-{
-    size_t size;
-    iss.read(reinterpret_cast<char*>(&size), sizeof(size_t));
-    p.deserialize(iss, size);
+    template <typename T>
+    std::istringstream &operator>>(std::istringstream &iss, T &p)
+    {
+        size_t size;
+        iss.read(reinterpret_cast<char *>(&size), sizeof(size_t));
+        p.deserialize(iss, size);
 
-    return iss;
-}
+        return iss;
+    }
+} // namespace lry

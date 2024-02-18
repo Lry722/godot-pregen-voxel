@@ -41,7 +41,7 @@ namespace lry
         spdlog::info("Succeed opening database.");
     }
 
-    std::unique_ptr<Chunk> WorldDB::loadChunk(const std::uint32_t x, const std::uint32_t z)
+    std::unique_ptr<Chunk> WorldDB::loadChunk(const size_t x, const size_t z)
     {
         // 依据chunk坐标构造指向地形数据的key，获取key所在位置的地形数据，反序列化数据
         spdlog::info("Start loading chunk({}, {}).", x, z);
@@ -50,7 +50,6 @@ namespace lry
         key.mv_size = sizeof(ChunkLMDBKey);
         key.mv_data = &key_data;
 
-        auto chunk = std::make_unique<Chunk>(x, z);
         {
             auto txn = beginTransaction(MDB_RDONLY);
             auto guard = scope_guard(&WorldDB::abortTransaction, this, txn);
@@ -59,6 +58,7 @@ namespace lry
         }
 
         std::istringstream iss({static_cast<char *>(data.mv_data), data.mv_size});
+        auto chunk = Chunk::create(x, z);
         iss >> *chunk;
         spdlog::info("Succeed loading chunk({}, {}).", x, z);
         return chunk;
@@ -77,6 +77,7 @@ namespace lry
         std::string_view buffer{oss.view()};
         data.mv_size = buffer.size();
         data.mv_data = const_cast<char *>(buffer.data());
+        
         
         auto txn = beginTransaction(MDB_WRITEMAP | MDB_NOSYNC);
         auto guard = scope_guard(&WorldDB::abortTransaction, this, txn);
