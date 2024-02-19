@@ -1,3 +1,5 @@
+#pragma once
+
 #include "chunk.h"
 #include "serialize.h"
 #include <sstream>
@@ -11,7 +13,8 @@ namespace lry
         return position.z << 8 | position.x << 4 | position.y;
     }
 
-    void Chunk::setVoxel(const Vec3 pos, const VoxelData new_data)
+    template <size_t kWidth, size_t kHeight>
+    void Chunk<kWidth, kHeight>::setVoxel(const Vec3 pos, const VoxelData new_data)
     {
         auto old_data = terrain_[vec3_to_index(pos)];
         if (old_data == new_data)
@@ -23,12 +26,14 @@ namespace lry
         old_data = new_data;
     }
 
-    VoxelData Chunk::getVoxel(const Vec3 pos) const
+    template <size_t kWidth, size_t kHeight>
+    VoxelData Chunk<kWidth, kHeight>::getVoxel(const Vec3 pos) const
     {
         return palette_.pick(terrain_[vec3_to_index(pos)]);
     }
 
-    void Chunk::serialize(std::ostringstream &oss)
+    template <size_t kWidth, size_t kHeight>
+    void Chunk<kWidth, kHeight>::serialize(std::ostringstream &oss)
     {
         // 生成原始数据
         std::ostringstream oss_uncompressed;
@@ -50,7 +55,8 @@ namespace lry
         oss.write(buffer.data(), size);
     }
 
-    void Chunk::deserialize(std::istringstream &iss, const size_t size)
+    template <size_t kWidth, size_t kHeight>
+    void Chunk<kWidth, kHeight>::deserialize(std::istringstream &iss, const size_t size)
     {
         // 读取原始数据的大小
         std::size_t original_size;

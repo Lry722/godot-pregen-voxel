@@ -3,6 +3,7 @@
 #include "constants.h"
 #include "scope_guard.h"
 #include "serialize.h"
+#include "chunk.h"
 
 #include <spdlog/spdlog.h>
 
@@ -41,13 +42,13 @@ namespace lry
         spdlog::info("Succeed opening database.");
     }
 
-    std::unique_ptr<Chunk> WorldDB::loadChunk(const size_t x, const size_t z)
+    std::unique_ptr<LoadedChunk> WorldDB::loadChunk(const size_t x, const size_t z)
     {
         // 依据chunk坐标构造指向地形数据的key，获取key所在位置的地形数据，反序列化数据
         spdlog::info("Start loading chunk({}, {}).", x, z);
         MDB_val key, data;
-        ChunkLMDBKey key_data = x << 16 | z;
-        key.mv_size = sizeof(ChunkLMDBKey);
+        size_t key_data = x << 16 | z;
+        key.mv_size = sizeof(size_t);
         key.mv_data = &key_data;
 
         {
@@ -58,19 +59,19 @@ namespace lry
         }
 
         std::istringstream iss({static_cast<char *>(data.mv_data), data.mv_size});
-        auto chunk = Chunk::create(x, z);
+        auto chunk = LoadedChunk::create(x, z);
         iss >> *chunk;
         spdlog::info("Succeed loading chunk({}, {}).", x, z);
         return chunk;
     }
 
-    void WorldDB::saveChunk(Chunk *chunk)
+    void WorldDB::saveChunk(LoadedChunk *chunk)
     {
         // 依据chunk坐标构造指向地形数据的key，序列化地形数据，写入key所在位置
         spdlog::info("Start saving chunk({}, {}).", chunk->x_, chunk->z_);
         MDB_val key, data;
-        ChunkLMDBKey key_data = chunk->x_ << 16 | chunk->z_;
-        key.mv_size = sizeof(ChunkLMDBKey);
+        size_t key_data = chunk->x_ << 16 | chunk->z_;
+        key.mv_size = sizeof(size_t);
         key.mv_data = &key_data;
         std::ostringstream oss;
         oss << *chunk;

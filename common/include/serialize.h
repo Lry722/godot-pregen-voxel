@@ -1,5 +1,5 @@
 #pragma once
-#include "typedefs.h"
+#include "constants.h"
 #include <sstream>
 
 namespace lry

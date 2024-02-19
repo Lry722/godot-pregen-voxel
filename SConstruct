@@ -3,6 +3,6 @@ env = Environment(CPPPATH=["."], LIBS=["yaml-cpp", "spdlog", "lmdb", "dsmap", "f
 includes = Glob('**/include')
 env['CPPPATH'] = includes
 
-src = Glob('**/*.cpp') + ['main.cpp']
+src = Glob('**/*.cpp')
 
 env.Program('out', src)

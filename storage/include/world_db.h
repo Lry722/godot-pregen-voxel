@@ -22,8 +22,8 @@ namespace lry
             return *instance_;
         }
 
-        std::unique_ptr<Chunk> loadChunk(const size_t x, const size_t z);
-        void saveChunk(Chunk *chunk);
+        std::unique_ptr<LoadedChunk> loadChunk(const size_t x, const size_t z);
+        void saveChunk(LoadedChunk *chunk);
         ~WorldDB();
 
     private:

@@ -1,26 +1,30 @@
 #pragma once
 
-#include "typedefs.h"
+#include "constants.h"
 #include "packed_array.h"
 #include "palette.h"
+#include "viewer.h"
 
 #include <cstdint>
 #include <glm/glm.hpp>
 
 namespace lry
 {
+
+    template <size_t kWidth, size_t kHeight>
     class Chunk
     {
     public:
         friend class WorldDB;
-        static std::unique_ptr<Chunk> create(const size_t x, const size_t z) {
-            return std::unique_ptr<Chunk>(new Chunk(x, z));
+        static std::unique_ptr<Chunk<kWidth, kHeight>> create(const size_t x, const size_t z)
+        {
+            return std::unique_ptr<Chunk<kWidth, kHeight>>(new Chunk<kWidth, kHeight>(x, z));
         }
 
     public:
         // 应该使用智能指针来管理Chunk，不应该出现拷贝
-        Chunk(const Chunk &other) = delete;
-        Chunk &operator=(const Chunk &other) = delete;
+        Chunk(const Chunk<kWidth, kHeight> &other) = delete;
+        Chunk<kWidth, kHeight> &operator=(const Chunk<kWidth, kHeight> &other) = delete;
 
         void setVoxel(const Vec3 pos, const VoxelData data);
         VoxelData getVoxel(const Vec3 pos) const;
@@ -31,11 +35,12 @@ namespace lry
 
     private:
         Chunk(const size_t x, const size_t z) : x_(x), z_(z) {}
-        
-    private:
+
         const size_t x_, z_;
         Palette palette_;
-        PackedArray<> terrain_{storage::kChunkSize};
+        PackedArray<> terrain_{kWidth * kWidth * kHeight};
     };
 
 } // namespace lry
+
+#include "chunk.inl"

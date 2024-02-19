@@ -1,20 +1,32 @@
 #pragma once
-#include "typedefs.h"
 #include <lmdb.h>
+#include <cstdint>
+#include <glm/vec3.hpp>
 
 #define CONSTANT_STRING(name, str) static const char *name = str;
 
 namespace lry
 {
+    // --------
+    // typedefs
+    // --------
+
+    typedef std::uint32_t size_t;
+    typedef std::uint32_t VoxelData;
+    typedef glm::u32vec3 Vec3;
+
+    // ---------
+    // constants
+    // ---------
+
     namespace config
     {
         namespace filename
         {
             CONSTANT_STRING(kConfig, "config.yml")
-        } // namespace filename
-        
-    } // namespace config
-    
+        }
+    }
+
     namespace db
     {
         namespace filename
@@ -29,10 +41,19 @@ namespace lry
 
     namespace storage
     {
-        static const size_t kChunkWidth = 16;
+        static const size_t kLoadedChunkWidth = 16;
+        static const size_t kGeneratingChunkWidth = 16;
         static const size_t kChunkHeight = 256;
-        static const size_t kChunkSize = kChunkWidth * kChunkWidth * kChunkHeight;
         static const size_t kMaxVoxelData = std::numeric_limits<VoxelData>::max();
-    } // namespace storage
-    
+
+    }
+
+    // --------
+    // template typedefs
+    // --------
+    template <size_t kWidth, size_t kHeight>
+    class Chunk;
+
+    typedef Chunk<storage::kLoadedChunkWidth, storage::kChunkHeight> LoadedChunk;
+    typedef Chunk<storage::kGeneratingChunkWidth, storage::kChunkHeight> GeneratingChunk;
 }
