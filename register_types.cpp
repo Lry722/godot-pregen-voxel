@@ -4,12 +4,12 @@
 
 void initialize_pgvoxel_module(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-			return;
+		return;
 	}
 }
 
 void uninitialize_pgvoxel_module(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
-			return;
+		return;
 	}
 }

@@ -3,42 +3,36 @@
 #include "chunk.h"
 
 #include <lmdb.h>
-#include <memory>
 #include <cstdint>
+#include <memory>
 
+namespace pgvoxel {
+class WorldDB {
+public:
+	static WorldDB &instance() {
+		if (!instance_) {
+			instance_ = new WorldDB();
+		}
+		return *instance_;
+	}
 
-namespace pgvoxel
-{
-    class WorldDB
-    {
+	std::unique_ptr<LoadedChunk> loadChunk(const size_t x, const size_t z);
+	void saveChunk(LoadedChunk *chunk);
+	~WorldDB();
 
-    public:
-        static WorldDB &instance()
-        {
-            if (!instance_)
-            {
-                instance_ = new WorldDB();
-            }
-            return *instance_;
-        }
+private:
+	WorldDB();
+	// 开始新事务
+	MDB_txn *beginTransaction(unsigned int flags);
+	// 提交事务，并释放scope_guard
+	void commitTransaction(MDB_txn *txn, auto &guard);
+	// 中断事务
+	void abortTransaction(MDB_txn *txn);
 
-        std::unique_ptr<LoadedChunk> loadChunk(const size_t x, const size_t z);
-        void saveChunk(LoadedChunk *chunk);
-        ~WorldDB();
+	static inline WorldDB *instance_ = nullptr;
 
-    private:
-        WorldDB();
-        // 开始新事务
-        MDB_txn * beginTransaction(unsigned int flags);
-        // 提交事务，并释放scope_guard
-        void commitTransaction(MDB_txn * txn, auto &guard);
-        // 中断事务
-        void abortTransaction(MDB_txn * txn);
+	MDB_env *env_{ nullptr };
+	MDB_dbi terrain_db_{};
+};
 
-        static inline WorldDB *instance_ = nullptr;
-
-        MDB_env *env_{nullptr};
-        MDB_dbi terrain_db_{};
-    };
-
-} // namespace lry
+} //namespace pgvoxel
