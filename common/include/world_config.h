@@ -4,7 +4,7 @@
 #include <vector>
 #include <dsmap-cpp/dsmap.h>
 
-namespace lry
+namespace pgvoxel
 {
 
     class WorldConfig
@@ -35,4 +35,4 @@ namespace lry
 
         bool successful{false};
     };
-} // namespace lry
+} // namespace pgvoxel

@@ -6,7 +6,7 @@
 #include <lz4.h>
 #include <stdexcept>
 
-namespace lry
+namespace pgvoxel
 {
     static size_t vec3_to_index(const Vec3 position)
     {
@@ -83,4 +83,4 @@ namespace lry
         std::istringstream iss_uncompressed(decompressedData);
         iss_uncompressed >> palette_ >> terrain_;
     }
-} // namespace lry
+} // namespace pgvoxel

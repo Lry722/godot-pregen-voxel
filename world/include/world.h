@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <tbb/concurrent_unordered_map.h>
 
-namespace lry
+namespace pgvoxel
 {
 
     // World 其实就是管理一些 viewer 在被添加/移动/移除时触发区块的加载和卸载

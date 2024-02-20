@@ -8,7 +8,7 @@
 #include <climits>
 #include <string>
 
-namespace lry
+namespace pgvoxel
 {
     template <typename T = std::uint32_t>
         requires std::is_unsigned_v<T>
@@ -67,6 +67,6 @@ namespace lry
 
         std::vector<T> data_;
     };
-} // namespace lry
+} // namespace pgvoxel
 
 #include "packed_array.inl"

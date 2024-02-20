@@ -5,7 +5,7 @@
 
 #define CONSTANT_STRING(name, str) static const char *name = str;
 
-namespace lry
+namespace pgvoxel
 {
     // --------
     // typedefs

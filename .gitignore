@@ -1,6 +1,9 @@
 .vscode
+.cache
+__pycache__
 *.dblite
 *.o
 *.db
 *-lock
 out
+compile_commands.json

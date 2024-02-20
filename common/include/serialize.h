@@ -2,7 +2,7 @@
 #include "constants.h"
 #include <sstream>
 
-namespace lry
+namespace pgvoxel
 {
     template <typename T>
     std::ostringstream &operator<<(std::ostringstream &oss, T &p)
@@ -29,4 +29,4 @@ namespace lry
 
         return iss;
     }
-} // namespace lry
+} // namespace pgvoxel

@@ -2,7 +2,7 @@
 #include <type_traits>
 #include <functional>
 
-namespace lry
+namespace pgvoxel
 {
     template <typename F, typename... Args>
         requires requires(F f, Args... args) { std::invoke(f, args...); }
@@ -27,4 +27,4 @@ namespace lry
 
     template <typename F, typename... Args>
     scope_guard(F &&, Args &&...) -> scope_guard<std::decay_t<F>, std::decay_t<Args>...>;
-} // namespace lry
+} // namespace pgvoxel

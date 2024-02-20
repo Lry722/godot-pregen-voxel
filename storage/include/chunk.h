@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-namespace lry
+namespace pgvoxel
 {
 
     template <size_t kWidth, size_t kHeight>

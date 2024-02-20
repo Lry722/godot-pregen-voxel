@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace lry
+namespace pgvoxel
 {
 
     static auto calcIndexInfo(const size_t index, const size_t element_size, const size_t unit_size)
@@ -280,4 +280,4 @@ namespace lry
         size_t index_;
     };
 
-} // namespace lry
+} // namespace pgvoxel

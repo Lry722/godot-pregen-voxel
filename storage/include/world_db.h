@@ -7,7 +7,7 @@
 #include <cstdint>
 
 
-namespace lry
+namespace pgvoxel
 {
     class WorldDB
     {

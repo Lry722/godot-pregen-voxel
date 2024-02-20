@@ -2,7 +2,7 @@
 
 #include "constants.h"
 
-namespace lry
+namespace pgvoxel
 {
     // 用于触发区块加载/卸载
     struct Viewer

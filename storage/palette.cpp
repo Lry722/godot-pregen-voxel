@@ -2,7 +2,7 @@
 #include <cstring>
 #include <sstream>
 
-namespace lry
+namespace pgvoxel
 {
 
     VoxelData Palette::pick(const size_t index) const
