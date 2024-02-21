@@ -13,16 +13,16 @@ namespace pgvoxel {
 WorldConfig::WorldConfig() {
 	using namespace config;
 
-	YAML::Node config = YAML::LoadFile(filename::kConfig);
-	if (!config.IsNull()) {
-		try {
+	try {
+		YAML::Node config = YAML::LoadFile(filename::kConfig);
+		if (!config.IsNull()) {
 			dsmap::yaml2struct(config["config"], data);
-		} catch (const YAML::Exception &e) {
-			ERR_PRINT("Failed to load configuration from file.");
-			return;
+			successful = true;
+			print_verbose("Succeed loading configuration from file.");
 		}
-		successful = true;
-		print_verbose("Succeed loading configuration from file.");
+	} catch (const YAML::Exception &e) {
+		ERR_PRINT("Failed to load configuration from file.");
+		return;
 	}
 }
 

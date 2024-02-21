@@ -2,8 +2,8 @@
 #pragma once
 
 #include "chunk.h"
-#include "serialize.h"
 #include "packed_array.inl"
+#include "serialize.h"
 
 #include <lz4.h>
 #include <sstream>
@@ -17,11 +17,13 @@ static inline size_t vec3_to_index(const Vec3 position) {
 template <size_t kWidth, size_t kHeight>
 void Chunk<kWidth, kHeight>::setVoxel(const Vec3 pos, const VoxelData new_data) {
 	auto old_data = terrain_[vec3_to_index(pos)];
-	if (old_data == new_data)
+	if (old_data == new_data) {
 		return;
+	}
 
-	if (palette_.update(new_data, old_data) && palette_.size() > terrain_.elementCapacity())
+	if (palette_.update(new_data, old_data) && palette_.size() > terrain_.elementCapacity()) {
 		terrain_.grow();
+	}
 
 	old_data = new_data;
 }
@@ -47,8 +49,9 @@ void Chunk<kWidth, kHeight>::serialize(std::ostringstream &oss) {
 	buffer.resize(LZ4_COMPRESSBOUND(size));
 	// 此处size表示压缩后数据的大小
 	size = LZ4_compress_default(data.data(), buffer.data(), data.size(), buffer.size());
-	if (size <= 0) [[unlikely]]
+	if (size <= 0) [[unlikely]] {
 		throw std::runtime_error(std::format("Chunk({}, {}): Compression failed!", x_, z_));
+	}
 
 	oss.write(buffer.data(), size);
 }
@@ -73,8 +76,9 @@ void Chunk<kWidth, kHeight>::deserialize(std::istringstream &iss, const size_t s
 
 	// 使用LZ4解压
 	int decompressedSize = LZ4_decompress_safe(compressedData.data(), decompressedData.data(), target_size, original_size);
-	if (decompressedSize <= 0) [[unlikely]]
+	if (decompressedSize <= 0) [[unlikely]] {
 		throw std::runtime_error("Decompression failed");
+	}
 
 	// 将解压后的数据转换为原始数据格式
 	std::istringstream iss_uncompressed(decompressedData);

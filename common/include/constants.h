@@ -1,9 +1,13 @@
 #pragma once
+
+#include "core/string/string_name.h"
+
 #include <lmdb.h>
 #include <cstdint>
 #include <glm/vec3.hpp>
 
 #define CONSTANT_STRING(name, str) static const char *name = str;
+#define STRING_NAME(str) static const StringName str{#str, true};
 
 namespace pgvoxel {
 // --------
@@ -22,12 +26,14 @@ namespace config {
 namespace filename {
 CONSTANT_STRING(kConfig, "config.yml")
 }
+CONSTANT_STRING(kBadConfig, "The world config was not loaded correctly.")
 } //namespace config
 
 namespace db {
 namespace filename {
 CONSTANT_STRING(kDatabaseEnv, "world.db")
 CONSTANT_STRING(kTerrainDB, "terrain")
+CONSTANT_STRING(kGenerationDB, "generation")
 } //namespace filename
 static const MDB_dbi kMaxdbs = 4;
 static const ::size_t kMapsize = 1073741824;
@@ -42,6 +48,16 @@ static const size_t kMaxVoxelData = std::numeric_limits<VoxelData>::max();
 
 } //namespace storage
 
+namespace generator {
+
+// STRING_NAME(generation_finished)
+// STRING_NAME(chunk_generation_finished)
+
+CONSTANT_STRING(generation_finished, "generation_finished")
+CONSTANT_STRING(chunk_generation_finished, "chunk_generation_finished")
+
+} //namespace generator
+
 // --------
 // template typedefs
 // --------
@@ -49,5 +65,5 @@ template <size_t kWidth, size_t kHeight>
 class Chunk;
 
 typedef Chunk<storage::kLoadedChunkWidth, storage::kChunkHeight> LoadedChunk;
-typedef Chunk<storage::kGeneratingChunkWidth, storage::kChunkHeight> GeneratingChunk;
+typedef Chunk<storage::kGeneratingChunkWidth, storage::kChunkHeight> GenerationChunk;
 } //namespace pgvoxel

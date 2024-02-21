@@ -1,4 +1,4 @@
-env = Environment(LIBS=["yaml-cpp", "lmdb", "dsmap", "lz4"], CCFLAGS=["-g", "-O0", "--std=c++20"])
+env = Environment(LIBS=["yaml-cpp", "lmdb", "dsmap", "lz4", "tbb"], CCFLAGS=["-g", "-O0", "--std=c++20"])
 
 includes = Glob('**/include', exclude=['register_types.cpp'])
 env['CPPPATH'] = includes

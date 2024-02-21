@@ -9,8 +9,8 @@
 namespace pgvoxel {
 class WorldDB {
 public:
-	static WorldDB &instance() {
-		if (!instance_) {
+	static WorldDB &singleton() {
+		if (!instance_) [[unlikely]] {
 			instance_ = new WorldDB();
 		}
 		return *instance_;
@@ -31,8 +31,8 @@ private:
 
 	static inline WorldDB *instance_ = nullptr;
 
-	MDB_env *env_{ nullptr };
-	MDB_dbi terrain_db_{};
+	MDB_env *env_{};
+	MDB_dbi terrain_db_{}, generation_db_{};
 };
 
 } //namespace pgvoxel

@@ -8,15 +8,15 @@ namespace pgvoxel {
 
 class WorldConfig {
 public:
+
 	STRUCT_WITH_PROPERTIES(Data,
 						   std::string name;
 						   std::int32_t seed;
-						   std::size_t height;
 						   std::size_t width;)
 	data;
 
 public:
-	static WorldConfig &instance() {
+	static WorldConfig &singleton() {
 		if (!instance_) {
 			instance_ = new WorldConfig();
 		}

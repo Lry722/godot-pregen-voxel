@@ -30,9 +30,9 @@ WorldDB::WorldDB() {
 	MDB_CALL(return, mdb_env_open, env_, filename::kDatabaseEnv, MDB_NOSUBDIR, kPermission);
 
 	// 打开各个数据库
-	MDB_txn *txn{};
-	MDB_CALL(return, mdb_txn_begin, env_, nullptr, 0, &txn);
+	auto txn = beginTransaction(0);
 	MDB_CALL(return, mdb_dbi_open, txn, filename::kTerrainDB, MDB_CREATE, &terrain_db_);
+	MDB_CALL(return, mdb_dbi_open, txn, filename::kGenerationDB, MDB_CREATE, &generation_db_);
 	MDB_CALL(return, mdb_txn_commit, txn);
 
 	print_verbose("Succeed opening database.")

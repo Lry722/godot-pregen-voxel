@@ -1,6 +1,6 @@
 Import('env')
 
-env.Append(LIBS=["yaml-cpp", "lmdb", "dsmap", "lz4"])
+env.Append(LIBS=["yaml-cpp", "lmdb", "dsmap", "lz4", "tbb"])
 module_env = env.Clone()
 module_env.Append(CCFLAGS=["-g", '-fexceptions', "-O0", "--std=c++20"])
 
