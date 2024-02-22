@@ -17,7 +17,6 @@ void VoxelGenerator::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("start"), &VoxelGenerator::start);
 
-	print_line(chunk_generation_finished);
 	// 区块 (x, z) 生成完毕
 	ADD_SIGNAL(MethodInfo(chunk_generation_finished, PropertyInfo(Variant::INT, "x"), PropertyInfo(Variant::INT, "z")));
 	// 全部生成完毕

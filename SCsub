@@ -2,12 +2,12 @@ Import('env')
 
 env.Append(LIBS=["yaml-cpp", "lmdb", "dsmap", "lz4", "tbb"])
 module_env = env.Clone()
-module_env.Append(CCFLAGS=["-g", '-fexceptions', "-O0", "--std=c++20"])
+module_env.Append(CCFLAGS=['-fexceptions', '--std=c++20'])
 
 includes = Glob('**/include') + ['.']
 module_env.Append(CPPPATH=includes)
 
-sources = Glob('**/*.cpp', exclude=['tests/**/*']) + ['register_types.cpp']
+sources = Glob('**/*.cpp') + ['register_types.cpp']
 
 if ARGUMENTS.get('pgvoxel_shared', 'no') == 'yes':
     # Shared lib compilation
@@ -20,3 +20,6 @@ if ARGUMENTS.get('pgvoxel_shared', 'no') == 'yes':
 else:
     # Static compilation
     module_env.add_source_files(env.modules_sources, sources)
+
+
+

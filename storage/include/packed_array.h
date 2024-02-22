@@ -36,6 +36,7 @@ public:
 
 	T get(const size_t index) const;
 	void set(const size_t index, const T value);
+	void setRange(const size_t begin, const size_t end, const T value);
 
 	void transform(const size_t element_size);
 	void grow();
