@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <memory>
 
-namespace pgvoxel {
+namespace pgvoxel::storage {
 class WorldDB {
 public:
 	static WorldDB &singleton() {

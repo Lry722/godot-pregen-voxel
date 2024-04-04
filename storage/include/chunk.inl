@@ -9,7 +9,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace pgvoxel {
+namespace pgvoxel::storage {
 static inline size_t vec3_to_index(const Vec3 position) {
 	return position.z << 8 | position.x << 4 | position.y;
 }
@@ -31,6 +31,21 @@ void Chunk<kWidth, kHeight>::setVoxel(const Vec3 pos, const VoxelData new_data) 
 template <size_t kWidth, size_t kHeight>
 VoxelData Chunk<kWidth, kHeight>::getVoxel(const Vec3 pos) const {
 	return palette_.pick(terrain_[vec3_to_index(pos)]);
+}
+
+template <size_t kWidth, size_t kHeight>
+void Chunk<kWidth, kHeight>::setBar(const size_t x, const size_t z, const size_t buttom, const size_t top, const VoxelData data) {
+	// index的最低位为y轴，y轴为垂直方向，因此terrain在垂直方向上的数据是连续的
+	terrain_.setRange(z << 8 | x << 4 | buttom, z << 8 | x << 4 | top, data);
+}
+
+template <size_t kWidth, size_t kHeight>
+void Chunk<kWidth, kHeight>::setBlock(const Vec3 begin, const Vec3 end, const VoxelData data) {
+	for (auto x = begin.x; x < end.x; ++x) {
+		for (auto z = begin.z; z < end.z; ++z) {
+			setBar(x, z, begin.y, end.y, data);
+		}
+	}
 }
 
 template <size_t kWidth, size_t kHeight>

@@ -17,7 +17,7 @@
 		}                                             \
 	} while (false)
 
-namespace pgvoxel {
+namespace pgvoxel::storage {
 
 WorldDB::WorldDB() {
 	using namespace db;
@@ -27,12 +27,12 @@ WorldDB::WorldDB() {
 	MDB_CALL(return, mdb_env_create, &env_);
 	MDB_CALL(return, mdb_env_set_maxdbs, env_, kMaxdbs);
 	MDB_CALL(return, mdb_env_set_mapsize, env_, kMapsize);
-	MDB_CALL(return, mdb_env_open, env_, filename::kDatabaseEnv, MDB_NOSUBDIR, kPermission);
+	MDB_CALL(return, mdb_env_open, env_, kDatabaseEnv, MDB_NOSUBDIR, kPermission);
 
 	// 打开各个数据库
 	auto txn = beginTransaction(0);
-	MDB_CALL(return, mdb_dbi_open, txn, filename::kTerrainDB, MDB_CREATE, &terrain_db_);
-	MDB_CALL(return, mdb_dbi_open, txn, filename::kGenerationDB, MDB_CREATE, &generation_db_);
+	MDB_CALL(return, mdb_dbi_open, txn, kTerrainDB, MDB_CREATE, &terrain_db_);
+	MDB_CALL(return, mdb_dbi_open, txn, kGenerationDB, MDB_CREATE, &generation_db_);
 	MDB_CALL(return, mdb_txn_commit, txn);
 
 	print_verbose("Succeed opening database.")

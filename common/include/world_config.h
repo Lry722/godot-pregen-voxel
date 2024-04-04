@@ -23,12 +23,20 @@ public:
 		return *instance_;
 	}
 
-	[[nodiscard]] bool loaded() const { return successful; }
+	[[nodiscard]] static bool loaded() { return loaded_; }
 
 private:
 	static inline WorldConfig *instance_ = nullptr;
 	WorldConfig();
 
-	bool successful{ false };
+	static inline bool loaded_{ false };
 };
+
+#define GET_WORLD_CONFIG(err_retval, name) \
+const auto &name = WorldConfig::singleton().data;\
+if (!WorldConfig::loaded()) {\
+	ERR_PRINT(config::kBadConfig);\
+	return err_retval;\
+}
+
 } // namespace pgvoxel

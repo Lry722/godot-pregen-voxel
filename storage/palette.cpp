@@ -3,7 +3,7 @@
 #include <cstring>
 #include <sstream>
 
-namespace pgvoxel {
+namespace pgvoxel::storage {
 
 VoxelData Palette::pick(const size_t index) const {
 	return index_to_data.at(index);

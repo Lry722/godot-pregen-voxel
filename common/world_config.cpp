@@ -14,14 +14,17 @@ WorldConfig::WorldConfig() {
 	using namespace config;
 
 	try {
-		YAML::Node config = YAML::LoadFile(filename::kConfig);
+		YAML::Node config = YAML::LoadFile(kConfig);
 		if (!config.IsNull()) {
-			dsmap::yaml2struct(config["config"], data);
-			successful = true;
+			dsmap::yaml2struct(config, data);
+			loaded_ = true;
 			print_verbose("Succeed loading configuration from file.");
+		} else {
+			ERR_PRINT("Failed to open configuration file.");
 		}
 	} catch (const YAML::Exception &e) {
 		ERR_PRINT("Failed to load configuration from file.");
+		ERR_PRINT(e.what());
 		return;
 	}
 }

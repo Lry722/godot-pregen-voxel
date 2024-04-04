@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace pgvoxel {
+namespace pgvoxel::storage {
 class Palette {
 public:
 	Palette() {

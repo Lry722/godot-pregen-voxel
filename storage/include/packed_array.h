@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace pgvoxel {
+namespace pgvoxel::storage {
 template <typename T = std::uint32_t>
 	requires std::is_unsigned_v<T>
 class PackedArray {

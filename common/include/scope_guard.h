@@ -4,7 +4,7 @@
 
 namespace pgvoxel {
 template <typename F, typename... Args>
-	requires requires(F f, Args... args) { std::invoke(f, args...); }
+requires requires(F f, Args... args) { std::invoke(f, args...); }
 struct scope_guard {
 	F f;
 	std::tuple<Args...> values;
@@ -13,8 +13,9 @@ struct scope_guard {
 	scope_guard(Fn &&func, Ts &&...args) :
 			f{ std::forward<Fn>(func) }, values{ std::forward<Ts>(args)... } {}
 	~scope_guard() {
-		if (!released)
+		if (!released) {
 			std::apply(f, values);
+		}
 	}
 	scope_guard(const scope_guard &) = delete;
 	void release() { released = true; }

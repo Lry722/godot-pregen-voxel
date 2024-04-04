@@ -2,33 +2,31 @@
 
 #include "scene/main/node.h"
 
-#include <cstdint>
-#include <atomic>
 #include <oneapi/tbb/task_group.h>
+#include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <thread>
 
-namespace pgvoxel {
+namespace pgvoxel::generator {
 
-class VoxelTerrainGenerator;
+class VoxelGeneratorLayer;
 
 class VoxelGenerator : public Node {
 	GDCLASS(VoxelGenerator, Node)
 public:
-	~VoxelGenerator() noexcept { tg_.wait(); }
-
 	void start();
-	void add_generator(Object *p_object);
-	void remove_generator(Object *p_object);
+
+	size_t getBatchSize() const { return batch_size_; }
+	void setBatchSize(size_t batch_size) { batch_size_ = batch_size; }
+
 	PackedStringArray get_configuration_warnings() const override;
 
 private:
 	static void _bind_methods();
 
-	VoxelTerrainGenerator *terrain_generator_{nullptr};
-	// uint64_t static_entity_generator_{};
-	// uint64_t dynamic_enrity_generator_{};
-
-	std::atomic<uint32_t> count{0};
-	tbb::task_group tg_{};
+	size_t batch_size_ = 4;
+	std::thread generator_thread_;
 };
 
-} //namespace pgvoxel
+} //namespace pgvoxel::generator

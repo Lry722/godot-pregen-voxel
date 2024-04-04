@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <tuple>
 
-namespace pgvoxel {
+namespace pgvoxel::storage {
 
 static inline auto calcIndexInfo(const size_t index, const size_t element_size, const size_t unit_size) {
 	return std::tuple{ (index * element_size) / unit_size, (index * element_size) % unit_size };

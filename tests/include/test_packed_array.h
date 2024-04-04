@@ -1,5 +1,9 @@
 #pragma once
 
-#include "packed_array.h"
+namespace pgvoxel {
 
 bool test_packed_array();
+
+}
+
+
