@@ -1,11 +1,8 @@
 #pragma once
 
-#include "core/string/ustring.h"
-
-#include "constants.h"
 #include "core/object/class_db.h"
 
-namespace pgvoxel::config {
+namespace pgvoxel{
 
 class VoxelWorldConfig : public Object {
 	GDCLASS(VoxelWorldConfig, Object)

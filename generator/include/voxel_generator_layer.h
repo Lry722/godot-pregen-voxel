@@ -1,24 +1,30 @@
 #pragma once
 
-#include "constants.h"
-
-#include "core/object/gdvirtual.gen.inc"
-#include "core/object/object.h"
-#include "scene/main/node.h"
-#include "voxel_chunk.h"
 #include "voxel_generation_chunk.h"
-#include <cstddef>
+
+#include "scene/main/node.h"
+
+#include <memory>
+#include <unordered_map>
 #include <vector>
 
-namespace pgvoxel::generator {
+namespace pgvoxel{
 
 class VoxelGeneratorLayer : public Node {
 	GDCLASS(VoxelGeneratorLayer, Node)
 public:
+	size_t getIndex() const { return index_; }
+	void setIndex(const size_t index) { index_ = index; }
+
 	void generate(std::vector<Ref<VoxelGenerationChunk>> &chunks);
+	GenerationChunk *getCachedChunk(const size_t x, const size_t z);
 	PackedStringArray get_configuration_warnings() const override;
+
 private:
 	static void _bind_methods();
+
+	size_t index_;
+	std::unordered_map<size_t, std::unique_ptr<GenerationChunk>> cache;
 };
 
-} //namespace pgvoxel
+} //namespace pgvoxel::generator

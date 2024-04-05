@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace pgvoxel::config {
+namespace pgvoxel{
 
 Variant VoxelWorldConfig::get(String property_name) {
 	GET_WORLD_CONFIG(Variant(), config);

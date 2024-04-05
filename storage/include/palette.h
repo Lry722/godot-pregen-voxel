@@ -1,22 +1,17 @@
 #pragma once
 
-#include "constants.h"
+#include "forward.h"
 
-#include <algorithm>
-#include <cstdint>
-#include <format>
 #include <map>
-#include <memory>
-#include <stdexcept>
+#include <sstream>
 #include <unordered_map>
-#include <vector>
 
-namespace pgvoxel::storage {
+namespace pgvoxel{
 class Palette {
 public:
 	Palette() {
 		index_to_data[0] = 0;
-		data_to_ref[0] = storage::kMaxVoxelData;
+		data_to_ref[0] = kMaxVoxelData;
 	}
 
 	size_t size() const { return index_to_data.size(); }

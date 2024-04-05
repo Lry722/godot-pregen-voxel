@@ -2,21 +2,19 @@
 #pragma once
 
 #include "chunk.h"
+#include "core/string/print_string.h"
+#include "forward.h"
 #include "packed_array.inl"
 #include "serialize.h"
 
 #include <lz4.h>
 #include <sstream>
-#include <stdexcept>
 
-namespace pgvoxel::storage {
-static inline size_t vec3_to_index(const Vec3 position) {
-	return position.z << 8 | position.x << 4 | position.y;
-}
+namespace pgvoxel{
 
-template <size_t kWidth, size_t kHeight>
-void Chunk<kWidth, kHeight>::setVoxel(const Vec3 pos, const VoxelData new_data) {
-	auto old_data = terrain_[vec3_to_index(pos)];
+template <CoordAxis kWidth, CoordAxis kHeight>
+void Chunk<kWidth, kHeight>::setVoxel(const Coord pos, const VoxelData new_data) {
+	auto old_data = terrain_[local_pos_to_index(pos)];
 	if (old_data == new_data) {
 		return;
 	}
@@ -28,19 +26,26 @@ void Chunk<kWidth, kHeight>::setVoxel(const Vec3 pos, const VoxelData new_data) 
 	old_data = new_data;
 }
 
-template <size_t kWidth, size_t kHeight>
-VoxelData Chunk<kWidth, kHeight>::getVoxel(const Vec3 pos) const {
-	return palette_.pick(terrain_[vec3_to_index(pos)]);
+template <CoordAxis kWidth, CoordAxis kHeight>
+VoxelData Chunk<kWidth, kHeight>::getVoxel(const Coord pos) const {
+	return palette_.pick(terrain_[local_pos_to_index(pos)]);
 }
 
-template <size_t kWidth, size_t kHeight>
-void Chunk<kWidth, kHeight>::setBar(const size_t x, const size_t z, const size_t buttom, const size_t top, const VoxelData data) {
-	// index的最低位为y轴，y轴为垂直方向，因此terrain在垂直方向上的数据是连续的
-	terrain_.setRange(z << 8 | x << 4 | buttom, z << 8 | x << 4 | top, data);
+template <CoordAxis kWidth, CoordAxis kHeight>
+void Chunk<kWidth, kHeight>::setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const VoxelData data) {
+	// 顺序必须按vec3_to_index中规定的zxy，否则top作为尾后迭代器，会覆盖到不属于自己的部分
+	// 最低位为y轴，而y轴为垂直方向，因此terrain在垂直方向上的数据是连续的，这就是为什么只能set竖直的bar
+	terrain_.setRange(local_pos_to_index({x, buttom, z}), local_pos_to_index({x, top, z}), data);
 }
 
-template <size_t kWidth, size_t kHeight>
-void Chunk<kWidth, kHeight>::setBlock(const Vec3 begin, const Vec3 end, const VoxelData data) {
+template <CoordAxis kWidth, CoordAxis kHeight>
+std::vector<VoxelData> Chunk<kWidth, kHeight>::getBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top) const {
+	// 和setBar同理
+	return terrain_.getRange(local_pos_to_index({x, buttom, z}), local_pos_to_index({x, top, z}));
+}
+
+template <CoordAxis kWidth, CoordAxis kHeight>
+void Chunk<kWidth, kHeight>::setBlock(const Coord begin, const Coord end, const VoxelData data) {
 	for (auto x = begin.x; x < end.x; ++x) {
 		for (auto z = begin.z; z < end.z; ++z) {
 			setBar(x, z, begin.y, end.y, data);
@@ -48,7 +53,7 @@ void Chunk<kWidth, kHeight>::setBlock(const Vec3 begin, const Vec3 end, const Vo
 	}
 }
 
-template <size_t kWidth, size_t kHeight>
+template <CoordAxis kWidth, CoordAxis kHeight>
 void Chunk<kWidth, kHeight>::serialize(std::ostringstream &oss) {
 	// 生成原始数据
 	std::ostringstream oss_uncompressed;
@@ -65,13 +70,13 @@ void Chunk<kWidth, kHeight>::serialize(std::ostringstream &oss) {
 	// 此处size表示压缩后数据的大小
 	size = LZ4_compress_default(data.data(), buffer.data(), data.size(), buffer.size());
 	if (size <= 0) [[unlikely]] {
-		throw std::runtime_error(std::format("Chunk({}, {}): Compression failed!", x_, z_));
+		print_error(String("Chunk({0}): Compression failed!").format(varray(toVector3i(position_))));
 	}
 
 	oss.write(buffer.data(), size);
 }
 
-template <size_t kWidth, size_t kHeight>
+template <CoordAxis kWidth, CoordAxis kHeight>
 void Chunk<kWidth, kHeight>::deserialize(std::istringstream &iss, const size_t size) {
 	// 读取原始数据的大小
 	std::size_t original_size;
@@ -92,7 +97,7 @@ void Chunk<kWidth, kHeight>::deserialize(std::istringstream &iss, const size_t s
 	// 使用LZ4解压
 	int decompressedSize = LZ4_decompress_safe(compressedData.data(), decompressedData.data(), target_size, original_size);
 	if (decompressedSize <= 0) [[unlikely]] {
-		throw std::runtime_error("Decompression failed");
+		print_error(String("Chunk({0}): Decompression failed!").format(varray(toVector3i(position_))));
 	}
 
 	// 将解压后的数据转换为原始数据格式

@@ -1,14 +1,11 @@
 #pragma once
 
-#include "constants.h"
-
 #include <climits>
-#include <concepts>
 #include <cstdint>
-#include <string>
+#include <sstream>
 #include <vector>
 
-namespace pgvoxel::storage {
+namespace pgvoxel{
 template <typename T = std::uint32_t>
 	requires std::is_unsigned_v<T>
 class PackedArray {
@@ -37,6 +34,7 @@ public:
 	T get(const size_t index) const;
 	void set(const size_t index, const T value);
 	void setRange(const size_t begin, const size_t end, const T value);
+	std::vector<T> getRange(const size_t begin, const size_t end) const;
 
 	void transform(const size_t element_size);
 	void grow();
@@ -44,7 +42,7 @@ public:
 
 	// 序列化
 	void serialize(std::ostringstream &oss);
-	// 反序列化，返回值表示读取到buffer中哪个位置
+	// 反序列化
 	void deserialize(std::istringstream &iss, const size_t size);
 
 	Access operator[](const size_t index) { return Access(*this, index); }

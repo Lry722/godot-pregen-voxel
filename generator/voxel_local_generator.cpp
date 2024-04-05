@@ -1,7 +1,6 @@
 #include "voxel_local_generator.h"
-#include "core/object/object.h"
 
-namespace pgvoxel::generator {
+namespace pgvoxel{
 
 void VoxelLocalGenerator::_bind_methods() {
 	GDVIRTUAL_BIND(_generate, "chunk")

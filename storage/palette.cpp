@@ -1,9 +1,11 @@
 #include "palette.h"
+
 #include <cstddef>
 #include <cstring>
 #include <sstream>
+#include <algorithm>
 
-namespace pgvoxel::storage {
+namespace pgvoxel{
 
 VoxelData Palette::pick(const size_t index) const {
 	return index_to_data.at(index);

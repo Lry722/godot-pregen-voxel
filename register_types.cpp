@@ -1,5 +1,4 @@
 #include "register_types.h"
-#include "constants.h"
 #include "core/object/class_db.h"
 #include "voxel_generator_layer.h"
 #include "voxel_local_generator.h"
@@ -15,11 +14,11 @@ void initialize_pgvoxel_module(ModuleInitializationLevel p_level) {
 		return;
 	}
 	ClassDB::register_class<VoxelTest>();
-	ClassDB::register_class<config::VoxelWorldConfig>();
-	ClassDB::register_class<generator::VoxelGenerationChunk>();
-	ClassDB::register_class<generator::VoxelGenerator>();
-	ClassDB::register_class<generator::VoxelGeneratorLayer>();
-	ClassDB::register_class<generator::VoxelLocalGenerator>();
+	ClassDB::register_class<VoxelWorldConfig>();
+	ClassDB::register_class<VoxelGenerationChunk>();
+	ClassDB::register_class<VoxelGenerator>();
+	ClassDB::register_class<VoxelGeneratorLayer>();
+	ClassDB::register_class<VoxelLocalGenerator>();
 }
 
 void uninitialize_pgvoxel_module(ModuleInitializationLevel p_level) {

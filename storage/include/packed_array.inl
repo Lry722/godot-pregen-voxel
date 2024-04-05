@@ -2,11 +2,10 @@
 #include "packed_array.h"
 #include <algorithm>
 #include <format>
-#include <sstream>
 #include <stdexcept>
 #include <tuple>
 
-namespace pgvoxel::storage {
+namespace pgvoxel{
 
 static inline auto calcIndexInfo(const size_t index, const size_t element_size, const size_t unit_size) {
 	return std::tuple{ (index * element_size) / unit_size, (index * element_size) % unit_size };
@@ -73,23 +72,45 @@ requires std::is_unsigned_v<T> inline void PackedArray<T>::set(const size_t inde
 
 template <typename T>
 requires std::is_unsigned_v<T> inline void PackedArray<T>::setRange(const size_t begin, const size_t end, const T value) {
+	if (end > size_) [[unlikely]] {
+		throw std::out_of_range(std::format("PackedArray: range ({}, {}) to set out of range!", begin, end));
+	}
+	
 	auto [index_in_data, index_in_unit] = calcIndexInfo(begin, element_size_, kUnitSize);
 
-	// 当连续写入且element_size_较小时，可能多次写入都是在同一个unit中。此时可以先缓存unit，最后一次性写入，避免对data_频繁读写。
-	T buffer{ data_[index_in_data] };
-	for (int i = begin; i < end; ++i) {
-		buffer = (buffer & ~(mask_ << index_in_unit)) | (value << index_in_unit);
+	for (size_t i = begin; i < end; ++i) {
+		data_[index_in_data] = (data_[index_in_data] & ~(mask_ << index_in_unit)) | (value << index_in_unit);
 		if (index_in_unit + element_size_ > kUnitSize) {
-			data_[index_in_data] = buffer;
 			++index_in_data;
-			buffer = (data_[index_in_data] & ~(mask_ >> (kUnitSize - index_in_unit))) | (value >> index_in_unit);
+			data_[index_in_data] = (data_[index_in_data] & ~(mask_ >> (kUnitSize - index_in_unit))) | (value >> index_in_unit);
 			index_in_unit = kUnitSize - index_in_unit;
 		} else {
 			index_in_unit += element_size_;
 		}
 	}
-	// 最后一次写入剩余的缓冲区内容
-	data_[index_in_data] = buffer;
+}
+
+template <typename T>
+requires std::is_unsigned_v<T>
+		std::vector<T> PackedArray<T>::getRange(const size_t begin, const size_t end) const {
+	if (end > size_) [[unlikely]] {
+		throw std::out_of_range(std::format("PackedArray: range ({}, {}) to get out of range!", begin, end));
+	}
+
+	std::vector<T> result;
+	result.reserve(end - begin);
+	auto [index_in_data, index_in_unit] = calcIndexInfo(begin, element_size_, kUnitSize);
+
+	for (size_t i = begin; i < end; ++i) {
+		result.push_back((data_[index_in_data] >> index_in_unit) & mask_);
+		if (index_in_unit + element_size_ > kUnitSize) {
+			++index_in_data;
+			index_in_unit = kUnitSize - index_in_unit;
+		} else {
+			index_in_unit += element_size_;
+		}
+	}
+	return result;
 }
 
 template <typename T>
@@ -99,7 +120,7 @@ requires std::is_unsigned_v<T> inline void PackedArray<T>::transform(const size_
 	}
 
 	PackedArray<T> tmp(size_, element_size);
-	for (int i = 0; i < size_; ++i) {
+	for (size_t i = 0; i < size_; ++i) {
 		tmp.set(i, get(i));
 	}
 
@@ -266,4 +287,4 @@ private:
 	size_t index_;
 };
 
-} // namespace pgvoxel
+} //namespace pgvoxel::storage

@@ -34,8 +34,8 @@ private:
 
 #define GET_WORLD_CONFIG(err_retval, name) \
 const auto &name = WorldConfig::singleton().data;\
-if (!WorldConfig::loaded()) {\
-	ERR_PRINT(config::kBadConfig);\
+if (!WorldConfig::loaded()) [[unlikely]] {\
+	ERR_PRINT("The world config was not loaded correctly.");\
 	return err_retval;\
 }
 

@@ -3,6 +3,7 @@
 #include <type_traits>
 
 namespace pgvoxel {
+
 template <typename F, typename... Args>
 requires requires(F f, Args... args) { std::invoke(f, args...); }
 struct scope_guard {
@@ -26,4 +27,5 @@ private:
 
 template <typename F, typename... Args>
 scope_guard(F &&, Args &&...) -> scope_guard<std::decay_t<F>, std::decay_t<Args>...>;
+
 } // namespace pgvoxel

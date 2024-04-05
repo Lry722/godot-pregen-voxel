@@ -3,10 +3,9 @@
 #include "chunk.h"
 
 #include <lmdb.h>
-#include <cstdint>
 #include <memory>
 
-namespace pgvoxel::storage {
+namespace pgvoxel {
 class WorldDB {
 public:
 	static WorldDB &singleton() {
@@ -16,9 +15,25 @@ public:
 		return *instance_;
 	}
 
-	std::unique_ptr<LoadedChunk> loadChunk(const size_t x, const size_t z);
+	// TODO: 或许应该把这些业务逻辑拆分到其他类中
+	std::unique_ptr<LoadedChunk> loadChunk(const Coord &pos);
 	void saveChunk(LoadedChunk *chunk);
+	std::unique_ptr<GenerationChunk> loadGenerationChunk(const CoordAxis x, const CoordAxis z);
+	void saveGenerationChunk(GenerationChunk *chunk);
+
 	~WorldDB();
+
+private:
+	// database names
+	// #define CONSTANT_STRING(name, str) inline static const char *name = str;
+	inline static const char *kDatabaseEnv = "world.db";
+	inline static const char *kTerrainDB = "terrain";
+	inline static const char *kGenerationDB = "generation";
+
+	// database enviroment paramters
+	static const MDB_dbi kMaxdbs = 4;
+	static const ::size_t kMapsize = 1073741824;
+	static const mdb_mode_t kPermission = 0664;
 
 private:
 	WorldDB();
