@@ -1,6 +1,7 @@
 #pragma once
 
 #include <climits>
+#include <cstddef>
 #include <cstdint>
 #include <sstream>
 #include <vector>
@@ -34,6 +35,7 @@ public:
 	T get(const size_t index) const;
 	void set(const size_t index, const T value);
 	void setRange(const size_t begin, const size_t end, const T value);
+	void setRange(const size_t begin, const size_t end, const std::vector<T> &values);
 	std::vector<T> getRange(const size_t begin, const size_t end) const;
 
 	void transform(const size_t element_size);

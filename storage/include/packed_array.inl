@@ -4,6 +4,7 @@
 #include <format>
 #include <stdexcept>
 #include <tuple>
+#include <vector>
 
 namespace pgvoxel{
 
@@ -71,7 +72,7 @@ requires std::is_unsigned_v<T> inline void PackedArray<T>::set(const size_t inde
 }
 
 template <typename T>
-requires std::is_unsigned_v<T> inline void PackedArray<T>::setRange(const size_t begin, const size_t end, const T value) {
+requires std::is_unsigned_v<T> inline void PackedArray<T>::setRange(const size_t begin, const size_t end, const T data) {
 	if (end > size_) [[unlikely]] {
 		throw std::out_of_range(std::format("PackedArray: range ({}, {}) to set out of range!", begin, end));
 	}
@@ -79,10 +80,30 @@ requires std::is_unsigned_v<T> inline void PackedArray<T>::setRange(const size_t
 	auto [index_in_data, index_in_unit] = calcIndexInfo(begin, element_size_, kUnitSize);
 
 	for (size_t i = begin; i < end; ++i) {
-		data_[index_in_data] = (data_[index_in_data] & ~(mask_ << index_in_unit)) | (value << index_in_unit);
+		data_[index_in_data] = (data_[index_in_data] & ~(mask_ << index_in_unit)) | (data << index_in_unit);
 		if (index_in_unit + element_size_ > kUnitSize) {
 			++index_in_data;
-			data_[index_in_data] = (data_[index_in_data] & ~(mask_ >> (kUnitSize - index_in_unit))) | (value >> index_in_unit);
+			data_[index_in_data] = (data_[index_in_data] & ~(mask_ >> (kUnitSize - index_in_unit))) | (data >> index_in_unit);
+			index_in_unit = kUnitSize - index_in_unit;
+		} else {
+			index_in_unit += element_size_;
+		}
+	}
+}
+
+template <typename T>
+requires std::is_unsigned_v<T> inline void PackedArray<T>::setRange(const size_t begin, const size_t end, const std::vector<T> &data) {
+	if (end > size_) [[unlikely]] {
+		throw std::out_of_range(std::format("PackedArray: range ({}, {}) to set out of range!", begin, end));
+	}
+	
+	auto [index_in_data, index_in_unit] = calcIndexInfo(begin, element_size_, kUnitSize);
+
+	for (size_t i = begin; i < end; ++i) {
+		data_[index_in_data] = (data_[index_in_data] & ~(mask_ << index_in_unit)) | (data[i - begin] << index_in_unit);
+		if (index_in_unit + element_size_ > kUnitSize) {
+			++index_in_data;
+			data_[index_in_data] = (data_[index_in_data] & ~(mask_ >> (kUnitSize - index_in_unit))) | (data[i - begin] >> index_in_unit);
 			index_in_unit = kUnitSize - index_in_unit;
 		} else {
 			index_in_unit += element_size_;

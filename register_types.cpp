@@ -3,6 +3,7 @@
 #include "voxel_generator_layer.h"
 #include "voxel_local_generator.h"
 #include "voxel_world_config.h"
+#include "voxel_world.h"
 
 #include "voxel_generator.h"
 #include "tests/include/test.h"
@@ -19,6 +20,7 @@ void initialize_pgvoxel_module(ModuleInitializationLevel p_level) {
 	ClassDB::register_class<VoxelGenerator>();
 	ClassDB::register_class<VoxelGeneratorLayer>();
 	ClassDB::register_class<VoxelLocalGenerator>();
+	ClassDB::register_class<VoxelWorld>();
 }
 
 void uninitialize_pgvoxel_module(ModuleInitializationLevel p_level) {

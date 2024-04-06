@@ -7,16 +7,21 @@
 
 #include "scene/main/node.h"
 
+#include "modules/pgvoxel/thirdparty/thread-pool-4.1.0/include/BS_thread_pool.hpp"
+#include <tbb/task_group.h>
+#include <vector>
 
-namespace pgvoxel{
+namespace pgvoxel {
 
-void VoxelGeneratorLayer::generate(std::vector<Ref<VoxelGenerationChunk>> &chunks) {
+void VoxelGeneratorLayer::generate(Ref<VoxelGenerationChunk> chunk) {
 	auto children = get_children();
-	for (auto &chunk : chunks) {
-		for (int i = 0; i < children.size(); ++i) {
-			auto generator = Object::cast_to<VoxelLocalGenerator>(children[i]);
-			GDVIRTUAL_CALL_PTR(generator, _generate, chunk);
-		}
+	std::vector<VoxelLocalGenerator *> generators;
+	for (int i = 0; i < children.size(); ++i) {
+		generators.push_back(Object::cast_to<VoxelLocalGenerator>(children[i]));
+	}
+
+	for (auto generator : generators) {
+		GDVIRTUAL_CALL_PTR(generator, _generate, chunk);
 	}
 }
 
@@ -41,4 +46,4 @@ PackedStringArray VoxelGeneratorLayer::get_configuration_warnings() const {
 void VoxelGeneratorLayer::_bind_methods() {
 }
 
-} //namespace pgvoxel::generator
+} //namespace pgvoxel

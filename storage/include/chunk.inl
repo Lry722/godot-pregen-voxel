@@ -9,12 +9,14 @@
 
 #include <lz4.h>
 #include <sstream>
+#include <stdexcept>
+#include <vector>
 
 namespace pgvoxel{
 
 template <CoordAxis kWidth, CoordAxis kHeight>
 void Chunk<kWidth, kHeight>::setVoxel(const Coord pos, const VoxelData new_data) {
-	auto old_data = terrain_[local_pos_to_index(pos)];
+	auto old_data = terrain_[pos_to_index(pos)];
 	if (old_data == new_data) {
 		return;
 	}
@@ -28,20 +30,32 @@ void Chunk<kWidth, kHeight>::setVoxel(const Coord pos, const VoxelData new_data)
 
 template <CoordAxis kWidth, CoordAxis kHeight>
 VoxelData Chunk<kWidth, kHeight>::getVoxel(const Coord pos) const {
-	return palette_.pick(terrain_[local_pos_to_index(pos)]);
+	return palette_.pick(terrain_[pos_to_index(pos)]);
 }
 
 template <CoordAxis kWidth, CoordAxis kHeight>
 void Chunk<kWidth, kHeight>::setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const VoxelData data) {
 	// 顺序必须按vec3_to_index中规定的zxy，否则top作为尾后迭代器，会覆盖到不属于自己的部分
 	// 最低位为y轴，而y轴为垂直方向，因此terrain在垂直方向上的数据是连续的，这就是为什么只能set竖直的bar
-	terrain_.setRange(local_pos_to_index({x, buttom, z}), local_pos_to_index({x, top, z}), data);
+	terrain_.setRange(pos_to_index({x, buttom, z}), pos_to_index({x, top, z}), data);
+}
+
+template <CoordAxis kWidth, CoordAxis kHeight>
+void Chunk<kWidth, kHeight>::setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const std::vector<VoxelData> &data) {
+	// 顺序必须按vec3_to_index中规定的zxy，否则top作为尾后迭代器，会覆盖到不属于自己的部分
+	// 最低位为y轴，而y轴为垂直方向，因此terrain在垂直方向上的数据是连续的，这就是为什么只能set竖直的bar
+	terrain_.setRange(pos_to_index({x, buttom, z}), pos_to_index({x, top, z}), data);
 }
 
 template <CoordAxis kWidth, CoordAxis kHeight>
 std::vector<VoxelData> Chunk<kWidth, kHeight>::getBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top) const {
 	// 和setBar同理
-	return terrain_.getRange(local_pos_to_index({x, buttom, z}), local_pos_to_index({x, top, z}));
+	try{
+	return terrain_.getRange(pos_to_index({x, buttom, z}), pos_to_index({x, top, z}));}
+	catch (const std::length_error &e) {
+		throw std::length_error(std::format("Chunk::getBar: begin ({}, {}, {}) end ({}, {}, {}) beginIndex {} endIndex{}", 
+			x, buttom, z, x, top, z, pos_to_index({x, buttom, z}), pos_to_index({x, top, z})));
+	}
 }
 
 template <CoordAxis kWidth, CoordAxis kHeight>

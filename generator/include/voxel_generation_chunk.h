@@ -27,8 +27,7 @@ public:
 	int32_t getX() const;
 	int32_t getZ() const;
 
-	~VoxelGenerationChunk() {
-		// 因为生成器区块的唯一作用就是进行生成，所以被销毁时必定需要保存生成结果
+	void save() {
 		WorldDB::singleton().saveGenerationChunk(data_.get());
 	}
 

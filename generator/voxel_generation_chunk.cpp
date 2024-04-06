@@ -60,10 +60,10 @@ int32_t VoxelGenerationChunk::getZ() const {
 }
 
 void VoxelGenerationChunk::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("setVoxel", "pos", "data"), &VoxelGenerationChunk::setVoxel);
-	ClassDB::bind_method(D_METHOD("getVoxel", "pos"), &VoxelGenerationChunk::getVoxel);
-	ClassDB::bind_method(D_METHOD("setBar", "x", "z", "buttom", "top", "data"), &VoxelGenerationChunk::setBar);
-	ClassDB::bind_method(D_METHOD("setBlock", "begin", "end", "data"), &VoxelGenerationChunk::setBlock);
+	ClassDB::bind_method(D_METHOD("set_voxel", "pos", "data"), &VoxelGenerationChunk::setVoxel);
+	ClassDB::bind_method(D_METHOD("get_voxel", "pos"), &VoxelGenerationChunk::getVoxel);
+	ClassDB::bind_method(D_METHOD("set_bar", "x", "z", "buttom", "top", "data"), &VoxelGenerationChunk::setBar);
+	ClassDB::bind_method(D_METHOD("set_block", "begin", "end", "data"), &VoxelGenerationChunk::setBlock);
 
 	ClassDB::bind_method(D_METHOD("x"), &VoxelGenerationChunk::getX);
 	ClassDB::bind_method(D_METHOD("z"), &VoxelGenerationChunk::getZ);

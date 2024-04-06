@@ -1,9 +1,11 @@
 #pragma once
 
 #include "chunk.h"
+#include "core/variant/dictionary.h"
 
 #include <lmdb.h>
 #include <memory>
+#include <shared_mutex>
 
 namespace pgvoxel {
 class WorldDB {
@@ -18,8 +20,15 @@ public:
 	// TODO: 或许应该把这些业务逻辑拆分到其他类中
 	std::unique_ptr<LoadedChunk> loadChunk(const Coord &pos);
 	void saveChunk(LoadedChunk *chunk);
+
 	std::unique_ptr<GenerationChunk> loadGenerationChunk(const CoordAxis x, const CoordAxis z);
 	void saveGenerationChunk(GenerationChunk *chunk);
+
+	Dictionary getMetadata(const CoordAxis x, const CoordAxis z);
+	void setMetadata(const CoordAxis x, const CoordAxis z, const Dictionary &metadata);
+
+	void beginGeneration();
+	void endGeneration();
 
 	~WorldDB();
 
@@ -27,6 +36,7 @@ private:
 	// database names
 	// #define CONSTANT_STRING(name, str) inline static const char *name = str;
 	inline static const char *kDatabaseEnv = "world.db";
+	inline static const char *kMetadataDB = "metadata";
 	inline static const char *kTerrainDB = "terrain";
 	inline static const char *kGenerationDB = "generation";
 
@@ -47,7 +57,8 @@ private:
 	static inline WorldDB *instance_ = nullptr;
 
 	MDB_env *env_{};
-	MDB_dbi terrain_db_{}, generation_db_{};
+	MDB_dbi metadata_db_{}, terrain_db_{}, generation_db_{};
+	mutable std::shared_mutex metadata_mtx, terrain_mtx, generation_mtx;
 };
 
 } //namespace pgvoxel

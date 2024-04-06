@@ -16,7 +16,7 @@ public:
 	size_t getIndex() const { return index_; }
 	void setIndex(const size_t index) { index_ = index; }
 
-	void generate(std::vector<Ref<VoxelGenerationChunk>> &chunks);
+	void generate(Ref<VoxelGenerationChunk> chunks);
 	GenerationChunk *getCachedChunk(const size_t x, const size_t z);
 	PackedStringArray get_configuration_warnings() const override;
 

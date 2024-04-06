@@ -28,8 +28,8 @@ public:
 	static const size_t kHeightBits = std::bit_width(kHeight - 1);
 
 	// 涉及到坐标转换时都必须按这里规定的zxy的顺序
-	static size_t local_pos_to_index(const Coord pos) {
-		return pos.z << (kWidthBits + kHeightBits) | pos.x << (kHeightBits) | pos.y;
+	static size_t pos_to_index(const Coord pos) {
+		return (pos.z << (kWidthBits + kHeightBits)) + (pos.x << (kHeightBits)) + pos.y;
 	}
 
 public:
@@ -45,9 +45,11 @@ public:
 	void setVoxel(const Coord pos, const VoxelData data);
 	// 获取一个点的值
 	VoxelData getVoxel(const Coord pos) const;
-	// 设置位于(x, z)处，从buttom到top间的数据为data，效率高于逐个调用setVoxel
+	// 设置位于(x, z)处，从buttom到top间的数据为data
 	void setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const VoxelData data);
-	// 获取位于(x, z)处，从buttom到top间的数据，效率高于逐个调用setVoxel
+	// 设置位于(x, z)处，从buttom到top间的数据为data，data的size应当大于等于 top - buttom
+	void setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const std::vector<VoxelData> &data);
+	// 获取位于(x, z)处，从buttom到top间的数据
 	std::vector<VoxelData> getBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top) const;
 	// 设置begin到end两点围成的区域中的值，效果等同于遍历水平面，逐个调用setBar
 	void setBlock(const Coord begin, const Coord end, const VoxelData data);

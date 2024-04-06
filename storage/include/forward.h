@@ -17,7 +17,7 @@ inline Coord toCoord(const Vector3i& vector3i) {
 
 static const size_t kLoadedChunkWidth = 32;
 static const size_t kLoadedChunkHeight = 32;
-static const size_t kGeneratingChunkWidth = 128;
+static const size_t kGeneratingChunkWidth = 32;
 static const size_t kGeneratingChunkHeight = 512;
 
 typedef std::uint32_t VoxelData;
