@@ -3,10 +3,12 @@
 #include "forward.h"
 #include "packed_array.h"
 #include "palette.h"
-#include "modules/pgvoxel/world/include/forward.h"
+#include "../../world/include/forward.h"
 
+#include <cstdint>
 #include <glm/glm.hpp>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace pgvoxel {
@@ -24,12 +26,10 @@ public:
 	}
 
 	// 2 * kWidthBits + kHeightBits 应小于 size_t的位数
-	static const size_t kWidthBits = std::bit_width(kWidth - 1);
-	static const size_t kHeightBits = std::bit_width(kHeight - 1);
-
-	// 涉及到坐标转换时都必须按这里规定的zxy的顺序
-	static size_t pos_to_index(const Coord pos) {
-		return (pos.z << (kWidthBits + kHeightBits)) + (pos.x << (kHeightBits)) + pos.y;
+	inline static const size_t kWidthBits = std::bit_width(kWidth - 1);
+	inline static const size_t kHeightBits = std::bit_width(kHeight - 1);
+	static size_t pos_to_index(const Coord &pos) {
+		return pgvoxel::pos_to_index(pos,kWidthBits, kHeightBits);
 	}
 
 public:
@@ -55,15 +55,19 @@ public:
 	void setBlock(const Coord begin, const Coord end, const VoxelData data);
 
 	// 序列化
-	void serialize(std::ostringstream &oss);
+	void serialize(std::ostringstream &oss) const;
 	// 反序列化
 	void deserialize(std::istringstream &iss, const size_t size);
+	std::string toString() const;
+
+	// 尝试清除冗余数据
+	void fit();
 
 private:
 	LoadLevels load_levels_;
 	const Coord position_;
-	Palette palette_;
-	PackedArray<> terrain_{ kWidth * kWidth * kHeight };
+	Palette<VoxelData, VoxelData> palette_;
+	PackedArray terrain_{ kWidth * kWidth * kHeight };
 };
 
 } //namespace pgvoxel

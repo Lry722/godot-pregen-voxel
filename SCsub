@@ -7,7 +7,8 @@ module_env.Append(CCFLAGS=['-fexceptions', '--std=c++20'])
 includes = Glob('**/include') + ['.']
 module_env.Append(CPPPATH=includes)
 
-sources = Glob('**/*.cpp') + ['register_types.cpp']
+sources = Glob('**/*.cpp')
+sources = [file for file in sources if file.name != "test.cpp"] + ['register_types.cpp']
 
 if ARGUMENTS.get('pgvoxel_shared', 'no') == 'yes':
     # Shared lib compilation

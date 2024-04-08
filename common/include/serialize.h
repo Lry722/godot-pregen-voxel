@@ -3,7 +3,8 @@
 
 namespace pgvoxel {
 template <typename T>
-std::ostringstream &operator<<(std::ostringstream &oss, T &p) {
+requires requires(std::ostringstream &oss, T &p) { p.serialize(oss); }
+std::ostringstream &operator<<(std::ostringstream &oss, const T &p) {
 	size_t size{ 0 };
 	oss.write(reinterpret_cast<char *>(&size), sizeof(size));
 	const auto start_pos = oss.tellp();
@@ -18,6 +19,7 @@ std::ostringstream &operator<<(std::ostringstream &oss, T &p) {
 }
 
 template <typename T>
+requires requires(std::istringstream &iss, T &p, size_t size) { p.deserialize(iss, size); }
 std::istringstream &operator>>(std::istringstream &iss, T &p) {
 	size_t size;
 	iss.read(reinterpret_cast<char *>(&size), sizeof(size_t));
@@ -25,4 +27,8 @@ std::istringstream &operator>>(std::istringstream &iss, T &p) {
 
 	return iss;
 }
+
+#define SERIALIZE_WRITE(oss, data) oss.write(reinterpret_cast<const char *>(&data), sizeof(data))
+#define DESERIALIZE_READ(iss, data) iss.read(reinterpret_cast<char *>(&data), sizeof(data))
+
 } // namespace pgvoxel

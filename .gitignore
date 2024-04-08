@@ -3,6 +3,7 @@
 __pycache__
 *.dblite
 *.o
+*.out
 *.db
 *-lock
 out

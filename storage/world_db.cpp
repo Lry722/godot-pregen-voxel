@@ -58,6 +58,7 @@ std::unique_ptr<LoadedChunk> WorldDB::loadChunk(const Coord &pos) {
 }
 
 void WorldDB::saveChunk(LoadedChunk *chunk) {
+	chunk->fit();
 	// 依据chunk坐标构造指向地形数据的key，序列化地形数据，写入key所在位置
 	MDB_val key, data;
 	size_t key_data = LoadedChunk::pos_to_index(chunk->position());
@@ -97,6 +98,7 @@ std::unique_ptr<GenerationChunk> WorldDB::loadGenerationChunk(const CoordAxis x,
 	return chunk;
 }
 void WorldDB::saveGenerationChunk(GenerationChunk *chunk) {
+	chunk->fit();
 	// 逻辑和saveChunk一样，只是操作的数据库是generation而不是terrain
 	MDB_val key, data;
 	size_t key_data = chunk->position_.x << 16 | chunk->position_.z;

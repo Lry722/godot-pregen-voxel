@@ -1,5 +1,8 @@
 #include "voxel_generation_chunk.h"
 #include "chunk.inl"
+#include "core/string/print_string.h"
+#include "core/string/ustring.h"
+#include "core/variant/variant.h"
 #include "forward.h"
 #include "voxel_generator_layer.h"
 #include "world_config.h"
@@ -32,14 +35,18 @@ VoxelData VoxelGenerationChunk::getVoxel(const Vector3i pos) const {
 	if (pos.x >= 0 && pos.y >= 0 && pos.z >= 0 &&
 			pos.x < static_cast<int32_t>(kGeneratingChunkWidth) && pos.y < static_cast<int32_t>(kGeneratingChunkHeight) && pos.z < static_cast<int32_t>(kGeneratingChunkWidth)) {
 		// 当访问当前区块中的格子时，直接返回对应的数据
-		return data_->getVoxel(toCoord(pos));
+		// print_line(String("Get {0}").format(varray(pos)));
+		VoxelData result = data_->getVoxel(toCoord(pos));
+		return result;
 	} else {
-		// 当访问的格子超出了当前区块时，要找到所处的区块，返回所处区块中对应的数据
-		GET_WORLD_CONFIG(0, config);
-		int32_t world_x = getX() * config.width + pos.x;
-		int32_t world_z = getZ() * config.width + pos.z;
-		// 这里没有范围检查，需要用户自己确保传入的pos不超出世界范围
-		return layer_->getCachedChunk(world_x / config.width, world_z / config.width)->getVoxel(Coord(world_x % config.width, pos.y, world_z % config.width));
+		// // 当访问的格子超出了当前区块时，要找到所处的区块，返回所处区块中对应的数据
+		// GET_WORLD_CONFIG(0, config);
+		// int32_t world_x = getX() * config.width + pos.x;
+		// int32_t world_z = getZ() * config.width + pos.z;
+		// // 这里没有范围检查，需要用户自己确保传入的pos不超出世界范围
+		// return layer_->getCachedChunk(world_x / config.width, world_z / config.width)->getVoxel(Coord(world_x % config.width, pos.y, world_z % config.width));
+		print_error("VoxelGenerationChunk::getVoxel pos out of range");
+		return 0;
 	}
 }
 

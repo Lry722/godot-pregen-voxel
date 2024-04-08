@@ -8,17 +8,15 @@
 #include "world_db.h"
 
 #include "core/object/class_db.h"
+#include "core/string/print_string.h"
 #include "core/variant/dictionary.h"
 #include "core/variant/variant.h"
-#include "core/io/json.h"
-#include "core/string/print_string.h"
 
-#include "modules/pgvoxel/thirdparty/thread-pool-4.1.0/include/BS_thread_pool.hpp"
-#include "modules/pgvoxel/thirdparty/thread-pool-4.1.0/include/BS_thread_pool_utils.hpp"
+#include "modules/pgvoxel/thirdparty/thread-pool/include/BS_thread_pool.hpp"
+#include "modules/pgvoxel/thirdparty/thread-pool/include/BS_thread_pool_utils.hpp"
 
 #include <cstddef>
 #include <memory>
-#include <vector>
 
 namespace pgvoxel {
 
@@ -34,19 +32,21 @@ void VoxelGenerator::start() {
 		// 遍历每一层
 		BS::thread_pool pool;
 		for (int i = 0; i < layers.size(); i++) {
-			print_line(String("Layer {0}").format(varray(i)));
 			auto layer = Object::cast_to<VoxelGeneratorLayer>(layers[i]);
+			print_line(String("Layer {0}").format(varray(layer->get_name())));
 			layer->setIndex(i);
 			// 遍历所有区块
 			for (size_t x = 0; x < config.width; ++x) {
 				for (size_t z = 0; z < config.width; ++z) {
-					pool.submit_task([&, x, z]() {
+					(void) pool.submit_task([&, x, z]() {
 						set_current_thread_safe_for_nodes(true);
 						Ref<VoxelGenerationChunk> chunk;
 						chunk.instantiate(x, z, layer);
+						print_verbose(String("Start {0}, {1}").format(varray(x, z)));
 						layer->generate(chunk);
+						print_verbose(String("Saving {0}, {1}").format(varray(x, z)));
 						chunk->save();
-						print_verbose(String("{0}, {1}").format(varray(x, z)));
+						print_verbose(String("Finished {0}, {1}").format(varray(x, z)));
 					});
 				}
 			}
@@ -54,7 +54,7 @@ void VoxelGenerator::start() {
 		}
 		// 将临时生成器数据库的中的数据保存到世界数据库中
 		saveGenerationResult();
-		// 删除临时生成器数据库
+		// 删除临时数据
 		WorldDB::singleton().endGeneration();
 		emit_signal("generation_finished");
 		// _call_deferred_bind({, }, 2, error);
@@ -70,7 +70,7 @@ void VoxelGenerator::saveGenerationResult() {
 	BS::thread_pool pool;
 	for (size_t gx = 0; gx < config.width; ++gx) {
 		for (size_t gz = 0; gz < config.width; ++gz) {
-			pool.submit_task([gx, gz]() {
+			(void) pool.submit_task([gx, gz]() {
 				std::unique_ptr<GenerationChunk> generationChunk{ WorldDB::singleton().loadGenerationChunk(gx, gz) };
 				// 以 kLoadedChunkHeight 为步长在竖直方向上对generation chunk进行分割
 				for (size_t gy = 0; gy * kLoadedChunkHeight < kGeneratingChunkHeight; ++gy) {

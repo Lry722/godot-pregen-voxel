@@ -1,5 +1,6 @@
 #include "voxel_generator_layer.h"
 
+#include "core/string/print_string.h"
 #include "voxel_generation_chunk.h"
 #include "voxel_generator.h"
 #include "voxel_local_generator.h"
@@ -7,7 +8,7 @@
 
 #include "scene/main/node.h"
 
-#include "modules/pgvoxel/thirdparty/thread-pool-4.1.0/include/BS_thread_pool.hpp"
+#include "modules/pgvoxel/thirdparty/thread-pool/include/BS_thread_pool.hpp"
 #include <tbb/task_group.h>
 #include <vector>
 
@@ -21,7 +22,9 @@ void VoxelGeneratorLayer::generate(Ref<VoxelGenerationChunk> chunk) {
 	}
 
 	for (auto generator : generators) {
+		print_verbose(String("Generator : {0}").format(varray(generator->get_name())));
 		GDVIRTUAL_CALL_PTR(generator, _generate, chunk);
+		print_verbose(String("Generator : {0} finished").format(varray(generator->get_name())));
 	}
 }
 
