@@ -1,5 +1,6 @@
 #pragma once
 
+#include "buffer.h"
 #include "forward.h"
 #include "packed_array.h"
 #include "palette.h"
@@ -53,6 +54,10 @@ public:
 	std::vector<VoxelData> getBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top) const;
 	// 设置begin到end两点围成的区域中的值，效果等同于遍历水平面，逐个调用setBar
 	void setBlock(const Coord begin, const Coord end, const VoxelData data);
+	// 设置position处的等同于data尺寸的block中值，超出当前区块的部分会被忽略
+	void setBlock(const Coord position, const Buffer &data);
+	// 获取begin到end间的值，以Buffer的形式储存
+	Buffer getBlock(const Coord begin, const Coord end) const;
 
 	// 序列化
 	void serialize(std::ostringstream &oss) const;

@@ -14,6 +14,8 @@ public:
 	class Access;
 	friend class Access;
 
+	friend class PackedArrmayView;
+
 	class iterator;
 	class const_iterator;
 

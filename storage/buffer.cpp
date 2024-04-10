@@ -20,17 +20,15 @@ VoxelData Buffer::getVoxel(const Coord pos) const {
 
 // 设置位于(x, z)处，从buttom到top间的数据为data
 void Buffer::setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const VoxelData data) {
-	for (CoordAxis i = pos_to_index({ x, buttom, z }); i < pos_to_index({ x, top, z }); i++) {
-		data_[i] = data;
-	}
+	std::fill(data_.begin() + pos_to_index({ x, buttom, z }), data_.begin() + pos_to_index({ x, top, z }), data);
 }
+
 // 设置位于(x, z)处，从buttom到top间的数据为data，data的size应当大于等于 top - buttom
 void Buffer::setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const std::vector<VoxelData> &data) {
 	const CoordAxis begin = pos_to_index({ x, buttom, z });
 	const CoordAxis end = pos_to_index({ x, top, z });
-	for (CoordAxis i = begin; i < end; i++) {
-		data_[i] = data[i - begin];
-	}
+	const size_t length = end - begin;
+	std::copy(data.begin(), data.begin() + length, data_.begin() + begin);
 }
 
 // 获取位于(x, z)处，从buttom到top间的数据

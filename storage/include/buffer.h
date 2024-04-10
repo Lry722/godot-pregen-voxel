@@ -2,6 +2,8 @@
 
 #include "forward.h"
 #include "packed_array.h"
+#include <cstdint>
+#include <glm/fwd.hpp>
 #include <vector>
 
 namespace pgvoxel {
@@ -9,6 +11,8 @@ namespace pgvoxel {
 // 用来存地物和结构等数据
 // 和Chunk不同，Buffer通常用于储存小数据，且需要快速读取，因此不采用Palette压缩
 class Buffer {
+public:
+	const CoordAxis kWidth, kHeight, kDepth;
 public:
 	Buffer(size_t width, size_t height, size_t depth) :
 			kWidth(width), kHeight(height), kDepth(depth), kWidthBits(std::bit_width(width - 1)), kHeightBits(std::bit_width(height - 1)), data_(width * height * depth) {}
@@ -32,13 +36,12 @@ public:
 	void deserialize(std::istringstream &iss, const size_t size);
 
 private:
-	const size_t kWidth, kHeight, kDepth;
-	const size_t kWidthBits, kHeightBits;
+	const uint8_t kWidthBits, kHeightBits;
 	size_t pos_to_index(const Coord &pos) const {
 		return pgvoxel::pos_to_index(pos, kWidthBits, kHeightBits);
 	}
 
-	// 一棵树在生成时可能会被拷贝数万遍，为了快速读取，加之本身体积不大，故不采用压缩
+	// 在生成时一个buffer（比如一棵树）可能会被访问数百万遍，为了快速读取，加之本身体积不大，故不采用压缩
 	std::vector<VoxelData> data_;
 };
 

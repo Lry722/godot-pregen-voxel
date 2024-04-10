@@ -149,6 +149,12 @@ void PackedArray::fit() {
 	}
 
 	const value_type maximum = *std::max_element(cbegin(), cend());
+	if (maximum == 0) {
+		element_bit_width_ = 0;
+		data_.clear();
+		return;
+	}
+
 	transform(std::bit_width(maximum));
 }
 

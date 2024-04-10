@@ -17,7 +17,7 @@ void initialize_pgvoxel_module(ModuleInitializationLevel p_level) {
 	ClassDB::register_class<VoxelTest>();
 	ClassDB::register_class<VoxelWorldConfig>();
 	ClassDB::register_class<VoxelGenerationChunk>();
-	ClassDB::register_class<VoxelGenerator>();
+	ClassDB::register_class<VoxelPreGenerator>();
 	ClassDB::register_class<VoxelGeneratorLayer>();
 	ClassDB::register_class<VoxelLocalGenerator>();
 	ClassDB::register_class<VoxelWorld>();

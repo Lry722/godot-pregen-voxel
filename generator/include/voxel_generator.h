@@ -13,8 +13,8 @@ namespace pgvoxel {
 
 class VoxelGeneratorLayer;
 
-class VoxelGenerator : public Node {
-	GDCLASS(VoxelGenerator, Node)
+class VoxelPreGenerator : public Node {
+	GDCLASS(VoxelPreGenerator, Node)
 public:
 	void start();
 

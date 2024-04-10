@@ -1,9 +1,9 @@
 #pragma once
 
+#include "serialize.h"
 #include "chunk.h"
 #include "forward.h"
 #include "palette.inl"
-#include "../../common/include/serialize.h"
 
 #include <lz4.h>
 #include <cstddef>
@@ -55,13 +55,16 @@ void Chunk<kWidth, kHeight>::setBar(const CoordAxis x, const CoordAxis z, const 
 	const auto begin = pos_to_index({ x, buttom, z });
 	const auto end = pos_to_index({ x, top, z });
 	auto covered = terrain_.getRange(begin, end);
+
 	std::vector<VoxelData> result;
 	result.reserve(covered.size());
-	VoxelData max_data_index{0};
+	VoxelData max_data_index{ 0 };
+
 	for (size_t i = 0; i < covered.size(); ++i) {
 		result.push_back(palette_.update(data[i], covered[i]));
 		max_data_index = std::max(max_data_index, result[i]);
 	}
+	
 	// 可能会添加多个新元素，需要不断增长到可容纳所有新元素
 	while (palette_.paletteSize() > terrain_.elementCapacity()) {
 		terrain_.grow();
@@ -83,11 +86,33 @@ std::vector<VoxelData> Chunk<kWidth, kHeight>::getBar(const CoordAxis x, const C
 
 template <CoordAxis kWidth, CoordAxis kHeight>
 void Chunk<kWidth, kHeight>::setBlock(const Coord begin, const Coord end, const VoxelData data) {
-	for (auto x = begin.x; x < end.x; ++x) {
-		for (auto z = begin.z; z < end.z; ++z) {
+	for (CoordAxis x = begin.x; x < end.x; ++x) {
+		for (CoordAxis z = begin.z; z < end.z; ++z) {
 			setBar(x, z, begin.y, end.y, data);
 		}
 	}
+}
+
+template <CoordAxis kWidth, CoordAxis kHeight>
+void Chunk<kWidth, kHeight>::setBlock(const Coord position, const Buffer &data) {
+	for (CoordAxis dx = 0; dx < data.kWidth && position.x + dx < kWidth; ++dx) {
+		for (CoordAxis dz = position.z; dz < data.kWidth && position.z + dz < kWidth; ++dz) {
+			setBar(position.x + dx, position.z + dz, position.y, position.y + data.kHeight,
+					data.getBar(dx, dz, 0, data.kHeight));
+		}
+	}
+}
+
+template <CoordAxis kWidth, CoordAxis kHeight>
+Buffer Chunk<kWidth, kHeight>::getBlock(const Coord begin, const Coord end) const {
+	Buffer result(end.x - begin.x, end.y - begin.y, end.z - begin.z);
+	for (CoordAxis dx = 0; dx < result.kWidth; ++dx) {
+		for (CoordAxis dz = 0; dz < result.kWidth; ++dz) {
+			result.setBar(dx, dz, 0, result.kHeight,
+					getBar(begin.x + dx, begin.z + dz, begin.y, begin.y + result.kHeight));
+		}
+	}
+	return result;
 }
 
 template <CoordAxis kWidth, CoordAxis kHeight>
