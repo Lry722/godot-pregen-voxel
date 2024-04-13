@@ -20,7 +20,7 @@ void PackedArray::push_back(const value_type value) {
 }
 
 PackedArray::value_type PackedArray::get(const int32_t index) const {
-	if (index >= size_) {
+	if (index >= size_) [[unlikely]] {
 		throw std::out_of_range(std::format("PackedArray: index {} out of range!", index));
 	}
 
