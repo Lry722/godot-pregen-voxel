@@ -17,7 +17,6 @@ public:
 	void setIndex(const size_t index) { index_ = index; }
 
 	void generate(Ref<VoxelGenerationChunk> chunks);
-	GenerationChunk *getCachedChunk(const size_t x, const size_t z);
 	PackedStringArray get_configuration_warnings() const override;
 
 private:

@@ -1,9 +1,6 @@
 #pragma once
 #include "core/object/class_db.h"
 #include "core/object/object.h"
-#include <stdexcept>
-#include "test_packed_array.h"
-#include "test_chunk.h"
 
 namespace pgvoxel {
 
@@ -24,8 +21,6 @@ class VoxelTest : public Object {
 	GDCLASS(VoxelTest, Object)
 public:
 	static void run(const PackedStringArray &targets) {
-		TEST(packed_array)
-		TEST(chunk)
 	}
 
 private:

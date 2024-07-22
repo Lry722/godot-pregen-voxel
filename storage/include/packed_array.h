@@ -9,201 +9,215 @@
 
 namespace pgvoxel {
 
+// ValueType 应当为无符号整数
+template <typename ValueType = uint32_t>
 class PackedArray {
-public:
-	class Access;
-	friend class Access;
+   public:
+    class Access;
+    friend class Access;
 
-	friend class PackedArrmayView;
+    class iterator;
+    class const_iterator;
 
-	class iterator;
-	class const_iterator;
+    typedef Access reference;
+	typedef ValueType value_type;
 
-	typedef uint32_t value_type;
-	typedef Access reference;
+    typedef int32_t size_type;
 
-public:
-	PackedArray(const int32_t size = 0, const int8_t element_bit_width = 0) noexcept :
-			element_bit_width_(element_bit_width), size_(size), element_capacity_((1ULL << element_bit_width_) - 1), data_((size * element_bit_width_ + kUnitBitWidth - 1) / kUnitBitWidth) {}
-	int32_t size() const { return size_; }
-	uint64_t elementCapacity() const { return element_capacity_; }
-	bool empty() const { return size_ == 0; }
+   public:
+    PackedArray(const size_type size = 0, const uint8_t element_bit_width = 0) noexcept
+        : element_bit_width_(element_bit_width),
+          size_(size),
+          element_capacity_((1ULL << element_bit_width_) - 1),
+          data_((size * element_bit_width_ + kUnitBitWidth - 1) / kUnitBitWidth) {}
+    size_type size() const { return size_; }
+    ValueType elementCapacity() const { return element_capacity_; }
+    bool empty() const { return size_ == 0; }
 
-	void resize(const int32_t size);
-	void push_back(const value_type value);
+    void resize(const size_type size);
+    void push_back(const ValueType value);
 
-	value_type get(const int32_t index) const;
-	void set(const int32_t index, const value_type value);
-	void setRange(const int32_t begin, const int32_t end, const value_type value);
-	void setRange(const int32_t begin, const int32_t end, const std::vector<value_type> &values);
-	std::vector<value_type> getRange(const int32_t begin, const int32_t end) const;
+    ValueType get(const size_type index) const;
+    void set(const size_type index, const ValueType value);
+    void setRange(const size_type begin, const size_type end, const ValueType value);
+    void setRange(const size_type begin, const size_type end, const std::vector<ValueType> &values);
+    std::vector<ValueType> getRange(const size_type begin, const size_type end) const;
 
-	void transform(const int8_t element_size);
-	void grow();
-	void fit();
+    void transformTo(const uint8_t element_size);
+    void grow();
+    void fit();
 
-	// 序列化
-	void serialize(std::ostringstream &oss) const;
-	// 反序列化
-	void deserialize(std::istringstream &iss, const int32_t size);
-	std::string toString() const;
+    // 序列化/反序列化
+    void serialize(std::ostringstream &oss) const;
+    void deserialize(std::istringstream &iss, const uint32_t size);
 
-	Access operator[](const int32_t index);
-	value_type operator[](const int32_t index) const;
+    std::string toString() const;
 
-	iterator begin();
-	iterator end();
-	const_iterator cbegin() const;
-	const_iterator cend() const;
+    Access operator[](const int32_t index);
+    ValueType operator[](const int32_t index) const;
 
-private:
-	static inline const int8_t kUnitBitWidth = sizeof(value_type) * CHAR_BIT;
+    iterator begin();
+    iterator end();
+    const_iterator cbegin() const;
+    const_iterator cend() const;
 
-	int8_t element_bit_width_;
-	int32_t size_;
-	inline auto indexOf(const int32_t index) const {
-		return std::tuple{ (index * element_bit_width_) / kUnitBitWidth, (index * element_bit_width_) % kUnitBitWidth };
-	}
+   private:
+    static inline const int8_t kUnitBitWidth = sizeof(ValueType) * CHAR_BIT;
 
-	std::uint64_t element_capacity_;
-	std::vector<value_type> data_;
+    uint8_t element_bit_width_;
+    size_type size_;
+    inline auto indexOf(const size_type index) const { return std::tuple{(index * element_bit_width_) / kUnitBitWidth, (index * element_bit_width_) % kUnitBitWidth}; }
+
+    ValueType element_capacity_;
+    std::vector<ValueType> data_;
 };
 
-class PackedArray::Access {
-	PackedArray &data_;
-	const int32_t index_;
-	const value_type value_;
+template <typename ValueType>
+class PackedArray<ValueType>::Access {
+    PackedArray &data_;
+    const PackedArray<ValueType>::size_type index_;
 
-public:
-	Access(PackedArray &data, int32_t index) :
-			data_(data), index_(index), value_(data.get(index)) {}
-	Access &operator=(const value_type value) {
-		if (value != value_) {
-			data_.set(index_, value);
-		}
-		return *this;
-	}
-	operator value_type() const {
-		return value_;
-	}
+   public:
+    Access(PackedArray &data, decltype(index_) index) : data_(data), index_(index) {}
+    Access &operator=(const ValueType value) {
+        data_.set(index_, value);
+        return *this;
+    }
+    operator ValueType() const { return data_.get(index_); }
 };
 
-class PackedArray::iterator {
-public:
-	using iterator_category = std::random_access_iterator_tag;
-	using difference_type = std::ptrdiff_t;
-	using value_type = PackedArray::value_type;
-	using reference = Access;
+template <typename ValueType>
+class PackedArray<ValueType>::iterator {
+   public:
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type = PackedArray<ValueType>::size_type;
+    using reference = Access;
 
-	iterator(PackedArray *array, const int32_t index) :
-			array_(array), index_(index) {}
+    iterator(PackedArray& data, const PackedArray<ValueType>::size_type index) : data_(data), index_(index) {}
 
-	reference operator*() const { return (*array_)[index_]; }
+    reference operator*() const { return data_[index_]; }
 
-	iterator &operator++() {
-		++index_;
-		return *this;
-	}
-	iterator operator++(int) {
-		iterator tmp(*this);
-		operator++();
-		return tmp;
-	}
+    iterator &operator++() {
+        ++index_;
+        return *this;
+    }
+    iterator operator++(int) {
+        iterator tmp(*this);
+        operator++();
+        return tmp;
+    }
 
-	iterator &operator--() {
-		--index_;
-		return *this;
-	}
-	iterator operator--(int) {
-		iterator tmp(*this);
-		operator--();
-		return tmp;
-	}
+    iterator &operator--() {
+        --index_;
+        return *this;
+    }
+    iterator operator--(int) {
+        iterator tmp(*this);
+        operator--();
+        return tmp;
+    }
 
-	iterator &operator+=(difference_type n) {
-		index_ += n;
-		return *this;
-	}
-	iterator &operator-=(difference_type n) {
-		index_ -= n;
-		return *this;
-	}
+    iterator &operator+=(difference_type n) {
+        index_ += n;
+        return *this;
+    }
+    iterator &operator-=(difference_type n) {
+        index_ -= n;
+        return *this;
+    }
 
-	friend iterator operator+(iterator it, difference_type n) { return it += n; }
-	friend iterator operator+(difference_type n, iterator it) { return it += n; }
-	friend iterator operator-(iterator it, difference_type n) { return it -= n; }
+    friend iterator operator+(iterator it, difference_type n) { return it += n; }
+    friend iterator operator+(difference_type n, iterator it) { return it += n; }
+    friend iterator operator-(iterator it, difference_type n) { return it -= n; }
 
-	friend difference_type operator-(iterator lhs, iterator rhs) { return lhs.index_ - rhs.index_; }
+    friend difference_type operator-(iterator lhs, iterator rhs) { return lhs.index_ - rhs.index_; }
 
-	bool operator==(const iterator &other) const { return array_ == other.array_ && index_ == other.index_; }
-	bool operator<(const iterator &other) const { return index_ < other.index_; }
+    bool operator==(const iterator &other) const { return index_ == other.index_; }
+    bool operator<(const iterator &other) const { return index_ < other.index_; }
 
-private:
-	PackedArray *array_;
-	int32_t index_;
+   private:
+    PackedArray& data_;
+    PackedArray<ValueType>::size_type index_;
 };
 
-class PackedArray::const_iterator {
-public:
-	using iterator_category = std::random_access_iterator_tag;
-	using difference_type = std::ptrdiff_t;
-	using value_type = PackedArray::value_type;
-	using reference = value_type;
+template <typename ValueType>
+class PackedArray<ValueType>::const_iterator {
+   public:
+    using iterator_category = std::random_access_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+    using reference = ValueType;
 
-	const_iterator(const PackedArray *array, const int32_t index) :
-			array_(array), index_(index) {}
+    const_iterator(const PackedArray& data, const PackedArray<ValueType>::size_type index) : data_(data), index_(index) {}
 
-	reference operator*() const { return (*array_)[index_]; }
+    reference operator*() const { return data_[index_]; }
 
-	const_iterator &operator++() {
-		++index_;
-		return *this;
-	}
-	const_iterator operator++(int) {
-		const_iterator tmp(*this);
-		operator++();
-		return tmp;
-	}
+    const_iterator &operator++() {
+        ++index_;
+        return *this;
+    }
+    const_iterator operator++(int) {
+        const_iterator tmp(*this);
+        operator++();
+        return tmp;
+    }
 
-	const_iterator &operator--() {
-		--index_;
-		return *this;
-	}
-	const_iterator operator--(int) {
-		const_iterator tmp(*this);
-		operator--();
-		return tmp;
-	}
+    const_iterator &operator--() {
+        --index_;
+        return *this;
+    }
+    const_iterator operator--(int) {
+        const_iterator tmp(*this);
+        operator--();
+        return tmp;
+    }
 
-	const_iterator &operator+=(difference_type n) {
-		index_ += n;
-		return *this;
-	}
-	const_iterator &operator-=(difference_type n) {
-		index_ -= n;
-		return *this;
-	}
+    const_iterator &operator+=(difference_type n) {
+        index_ += n;
+        return *this;
+    }
+    const_iterator &operator-=(difference_type n) {
+        index_ -= n;
+        return *this;
+    }
 
-	friend const_iterator operator+(const_iterator it, difference_type n) { return it += n; }
-	friend const_iterator operator+(difference_type n, const_iterator it) { return it += n; }
-	friend const_iterator operator-(const_iterator it, difference_type n) { return it -= n; }
+    friend const_iterator operator+(const_iterator it, difference_type n) { return it += n; }
+    friend const_iterator operator+(difference_type n, const_iterator it) { return it += n; }
+    friend const_iterator operator-(const_iterator it, difference_type n) { return it -= n; }
 
-	friend difference_type operator-(const_iterator lhs, const_iterator rhs) { return lhs.index_ - rhs.index_; }
+    friend difference_type operator-(const_iterator lhs, const_iterator rhs) { return lhs.index_ - rhs.index_; }
 
-	bool operator==(const const_iterator &other) const { return array_ == other.array_ && index_ == other.index_; }
-	bool operator<(const const_iterator &other) const { return index_ < other.index_; }
+    bool operator==(const const_iterator &other) const { return index_ == other.index_; }
+    bool operator<(const const_iterator &other) const { return index_ < other.index_; }
 
-private:
-	const PackedArray *array_;
-	int32_t index_;
+   private:
+    const PackedArray& data_;
+    PackedArray<ValueType>::size_type index_;
 };
 
-inline PackedArray::Access PackedArray::operator[](const int32_t index) { return Access(*this, index); }
-inline PackedArray::value_type PackedArray::operator[](const int32_t index) const { return get(index); }
+template <typename ValueType>
+inline PackedArray<ValueType>::reference PackedArray<ValueType>::operator[](const PackedArray<ValueType>::size_type index) {
+    return Access(*this, index);
+}
+template <typename ValueType>
+inline ValueType PackedArray<ValueType>::operator[](const PackedArray<ValueType>::size_type index) const {
+    return get(index);
+}
 
-inline PackedArray::iterator PackedArray::begin() { return iterator(this, 0); }
-inline PackedArray::iterator PackedArray::end() { return iterator(this, size_); }
-inline PackedArray::const_iterator PackedArray::cbegin() const { return const_iterator(this, 0); }
-inline PackedArray::const_iterator PackedArray::cend() const { return const_iterator(this, size_); }
+template <typename ValueType>
+inline PackedArray<ValueType>::iterator PackedArray<ValueType>::begin() {
+    return iterator(this, 0);
+}
+template <typename ValueType>
+inline PackedArray<ValueType>::iterator PackedArray<ValueType>::end() {
+    return iterator(this, size_);
+}
+template <typename ValueType>
+inline PackedArray<ValueType>::const_iterator PackedArray<ValueType>::cbegin() const {
+    return const_iterator(this, 0);
+}
+template <typename ValueType>
+inline PackedArray<ValueType>::const_iterator PackedArray<ValueType>::cend() const {
+    return const_iterator(this, size_);
+}
 
-} // namespace pgvoxel
+}  // namespace pgvoxel

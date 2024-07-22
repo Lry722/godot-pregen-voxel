@@ -28,14 +28,6 @@ void VoxelGeneratorLayer::generate(Ref<VoxelGenerationChunk> chunk) {
 	}
 }
 
-GenerationChunk *VoxelGeneratorLayer::getCachedChunk(const size_t x, const size_t z) {
-	size_t key = x << 16 | z;
-	if (!cache.contains(key)) {
-		cache[key] = WorldDB::singleton().loadGenerationChunk(x, z);
-	}
-	return cache[key].get();
-}
-
 PackedStringArray VoxelGeneratorLayer::get_configuration_warnings() const {
 	PackedStringArray warnings = Node::get_configuration_warnings();
 

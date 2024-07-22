@@ -7,15 +7,31 @@
 
 namespace pgvoxel {
 
+class VoxelMesher;
+
 // Block表示地形中一个基础的格子的内容和属性
 class VoxelBlock : public Resource {
 	GDCLASS(VoxelBlock, Resource)
 public:
+	friend class pgvoxel::VoxelMesher;
+
+public:
 	// Model 相关属性
 	void set_mesh(Ref<Mesh> mesh) { model.set_mesh(mesh); }
 	Ref<Mesh> get_mesh() const { return model.get_mesh(); }
-	void bake() { model.bake(); }
-	const Model::BakedData &get_baked_data() const { return model.get_baked_data(); }
+	void bake() {
+		set_current_thread_safe_for_nodes(true);
+		print_verbose("Prepare baking");
+		if (model.get_mesh().is_valid()) {
+			print_verbose(String("Start baking."));
+			print_verbose(String("Mesh rid {0}").format(varray(model.get_mesh()->get_rid())));
+			model.bake();
+		} else {
+			print_verbose("No mesh to bake.");
+		}
+	}
+	bool baked() const { return model.baked(); }
+	const Model &get_model() const { return model; }
 
 	// 随机tick相关属性
 	void set_random_tickable(bool tickable) { random_tickable = tickable; }

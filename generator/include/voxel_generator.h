@@ -13,8 +13,8 @@ namespace pgvoxel {
 
 class VoxelGeneratorLayer;
 
-class VoxelPreGenerator : public Node {
-	GDCLASS(VoxelPreGenerator, Node)
+class VoxelGenerator : public Node {
+	GDCLASS(VoxelGenerator, Node)
 public:
 	void start();
 
@@ -25,7 +25,6 @@ public:
 
 private:
 	static void _bind_methods();
-	void saveGenerationResult();
 
 	size_t batch_size_ = 4;
 	std::thread generator_thread_;

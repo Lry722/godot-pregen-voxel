@@ -1,16 +1,18 @@
 #pragma once
+#include <cstdint>
 #include <sstream>
 
 namespace pgvoxel {
+
 template <typename T>
 requires requires(std::ostringstream &oss, T &p) { p.serialize(oss); }
 std::ostringstream &operator<<(std::ostringstream &oss, const T &p) {
-	size_t size{ 0 };
+	uint32_t size{ 0 };
 	oss.write(reinterpret_cast<char *>(&size), sizeof(size));
 	const auto start_pos = oss.tellp();
 	p.serialize(oss);
 	const auto end_pos = oss.tellp();
-	size = static_cast<size_t>(end_pos - start_pos);
+	size = static_cast<uint32_t>(end_pos - start_pos);
 	oss.seekp(start_pos - std::streamoff(sizeof(size)));
 	oss.write(reinterpret_cast<char *>(&size), sizeof(size));
 	oss.seekp(end_pos);
@@ -19,10 +21,10 @@ std::ostringstream &operator<<(std::ostringstream &oss, const T &p) {
 }
 
 template <typename T>
-requires requires(std::istringstream &iss, T &p, size_t size) { p.deserialize(iss, size); }
+requires requires(std::istringstream &iss, T &p, uint32_t size) { p.deserialize(iss, size); }
 std::istringstream &operator>>(std::istringstream &iss, T &p) {
-	size_t size;
-	iss.read(reinterpret_cast<char *>(&size), sizeof(size_t));
+	uint32_t size;
+	iss.read(reinterpret_cast<char *>(&size), sizeof(uint32_t));
 	p.deserialize(iss, size);
 
 	return iss;

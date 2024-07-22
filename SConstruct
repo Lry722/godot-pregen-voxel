@@ -1,4 +1,4 @@
-env = Environment(LIBS=["yaml-cpp", "lmdb", "dsmap", "lz4", "tbb"],CCFLAGS=['-fexceptions', '--std=c++20', '-g', '-O0'])
+env = Environment(LIBS=["yaml-cpp", "lmdb", "dsmap", "lz4", "tbb"],CCFLAGS=['-fexceptions', '--std=c++20', '-g'])
 
 includes = Glob('**/include') + ['/home/admin/Documents/C++/godot/']
 sources = ['tests/test.cpp', 'storage/packed_array.cpp'] 

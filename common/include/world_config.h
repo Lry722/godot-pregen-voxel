@@ -3,6 +3,7 @@
 #include <dsmap-cpp/dsmap.h>
 #include <string>
 #include <vector>
+#include "../../storage/include/forward.h"
 
 namespace pgvoxel {
 
@@ -12,7 +13,7 @@ public:
 	STRUCT_WITH_PROPERTIES(Data,
 						   std::string name;
 						   std::int32_t seed;
-						   std::size_t width;)
+						   CoordAxis width;)
 	data;
 
 public:

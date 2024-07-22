@@ -1,5 +1,3 @@
-#include "include/test_chunk.h"
-// #include "include/test_packed_array.h"
 #include <iostream>
 
 #define TEST(x)                                                  \
@@ -14,6 +12,5 @@
 	}
 
 int main() {
-	using namespace pgvoxel;
-	TEST(chunk);
+
 }

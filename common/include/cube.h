@@ -1,5 +1,11 @@
 #pragma once
 
+#include "forward.h"
+#include "modules/pgvoxel/storage/include/forward.h"
+#include <array>
+#include <glm/ext/vector_float3.hpp>
+#include <utility>
+
 namespace pgvoxel {
 
 enum Side {
@@ -9,8 +15,26 @@ enum Side {
 	SIDE_TOP,
 	SIDE_BACK,
 	SIDE_FRONT,
-
+	// SIDE_COUNT 也可用于表示内部
 	SIDE_COUNT
+};
+
+static const std::array<glm::vec3, SIDE_COUNT> kSideNormalLut {
+	glm::vec3{-1 ,0, 0},
+	glm::vec3{1 ,0, 0},
+	glm::vec3{0 ,-1, 0},
+	glm::vec3{0 ,1, 0},
+	glm::vec3{0 ,0, -1},
+	glm::vec3{0 ,0, 1}
+};
+
+static const std::array<Side, SIDE_COUNT> kOppositeSideLut {
+    Side::SIDE_RIGHT,
+	Side::SIDE_LEFT,
+	Side::SIDE_TOP,
+	Side::SIDE_BOTTOM,
+	Side::SIDE_FRONT,
+	Side::SIDE_BACK
 };
 
 enum SideAxis {
@@ -54,4 +78,6 @@ enum Corner {
 	CORNER_COUNT
 };
 
-} //namespace pgvoxe
+
+
+} //namespace pgvoxel

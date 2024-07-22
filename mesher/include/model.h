@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/object/ref_counted.h"
+#include "core/variant/variant.h"
 #include "cube.h"
 
 #include "scene/resources/material.h"
@@ -8,7 +9,10 @@
 
 #include <array>
 #include <bitset>
+#include <cstdint>
 #include <glm/glm.hpp>
+#include <shared_mutex>
+#include <thread>
 #include <vector>
 
 namespace pgvoxel {
@@ -22,36 +26,31 @@ struct Model {
 			// 该面的材质
 			Ref<Material> material;
 
-			// Inside part of the model.
-			// 内部的三角面数据
-			std::vector<glm::vec3> positions;
-			std::vector<glm::vec3> normals;
-			std::vector<glm::vec2> uvs;
-			std::vector<int> indices;
-			std::vector<float> tangents;
-			// Model sides:
-			// They are separated because this way we can occlude them easily.
-			// Due to these defining cube side triangles, normals are known already.
-			// 六个面上的三角面数据
-			// 为了在 Meshing 时快速剔除某个面，在预处理时将它们分开储存
-			// 因为六个面的方向固定，因此法线已知，不用储存
-			std::array<std::vector<glm::vec3>, SIDE_COUNT> side_positions;
-			std::array<std::vector<glm::vec2>, SIDE_COUNT> side_uvs;
-			std::array<std::vector<int>, SIDE_COUNT> side_indices;
-			std::array<std::vector<float>, SIDE_COUNT> side_tangents;
+			struct Data {
+				std::vector<glm::vec3> positions;
+				std::vector<glm::vec3> normals;
+				std::vector<glm::vec2> uvs;
+				std::vector<int> indices;
+				std::vector<float> tangents;
+			};
+
+
+			// 为了在 Meshing 时快速剔除某个面，在预处理时要将内部的数据和面上的数据分离
+			Data inside_data;
+			Data side_data[Side::SIDE_COUNT];
 
 			void clear() {
-				positions.clear();
-				normals.clear();
-				uvs.clear();
-				indices.clear();
-				tangents.clear();
+				inside_data.positions.clear();
+				inside_data.normals.clear();
+				inside_data.uvs.clear();
+				inside_data.indices.clear();
+				inside_data.tangents.clear();
 
 				for (int side = 0; side < SIDE_COUNT; ++side) {
-					side_positions[side].clear();
-					side_uvs[side].clear();
-					side_indices[side].clear();
-					side_tangents[side].clear();
+					side_data[side].positions.clear();
+					side_data[side].uvs.clear();
+					side_data[side].indices.clear();
+					side_data[side].tangents.clear();
 				}
 			}
 		};
@@ -61,9 +60,11 @@ struct Model {
 		// 用于标记每个面是否有东西，前六位是面，第七位是内部
 		uint8_t sides_mask = 0;
 
-		// 每个面上的所有三角面的 8*8 的栅格化结果
-		// 可通过比较两个面的 pattern 判断是否有包含关系，进一步判断是否需要剔除被包含的相邻的面
-		std::array<std::bitset<64>, Side::SIDE_COUNT> side_pattern_indices;
+		// 对面上的所有三角面进行栅格化结果，记录覆盖到了 pattern 的哪些格子
+		// 可通过比较两个面的 pattern 快速判断是否有包含关系，进而判断是否需要剔除
+		// 16 x 16 的精度应该足够了
+		static const uint8_t PATTERN_WIDTH = 16;
+		std::array<std::bitset<PATTERN_WIDTH * PATTERN_WIDTH>, Side::SIDE_COUNT> side_pattern;
 
 		void clear() {
 			for (unsigned int i = 0; i < surfaces.size(); ++i) {
@@ -75,6 +76,7 @@ struct Model {
 
 	// 预处理
 	void bake();
+	bool baked() const {return baked_;}
 	const BakedData &get_baked_data() const {
 		return baked_data_;
 	}
@@ -84,11 +86,12 @@ struct Model {
 			return;
 		}
 		mesh_ = mesh;
-		baked = false;
+		baked_ = false;
+		baked_data_.clear();
 	}
 	Ref<Mesh> get_mesh() const { return mesh_; }
 
-	const float side_vertex_tolerance{0.001};
+	const float side_vertex_tolerance{ 0.001 };
 
 	// 是否启用剔除相邻方块
 	bool culls_neighbors{ true };
@@ -107,7 +110,7 @@ struct Model {
 	std::vector<AABB> box_collision_aabbs{};
 
 private:
-	bool baked{ false };
+	bool baked_{ false };
 
 	// 原始 Mesh 数据
 	Ref<Mesh> mesh_;

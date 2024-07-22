@@ -1,45 +1,62 @@
 #pragma once
 
+#include "core/error/error_macros.h"
 #include "forward.h"
-#include "packed_array.h"
 #include <cstdint>
 #include <glm/fwd.hpp>
+#include <sstream>
 #include <vector>
 
 namespace pgvoxel {
 
-// 用来存地物和结构等数据
-// 和Chunk不同，Buffer通常用于储存小数据，且需要快速读取，因此不采用Palette压缩
+// 和Chunk不同，Buffer通常用于储存需要频繁读取的小数据，因此不采用Palette压缩
 class Buffer {
 public:
-	const CoordAxis kWidth, kHeight, kDepth;
+	uint64_t pos_to_index(const Coord &pos) const {
+		return pgvoxel::pos_to_index(pos, width_bits, height_bits);
+	}
+
 public:
-	Buffer(size_t width, size_t height, size_t depth) :
-			kWidth(width), kHeight(height), kDepth(depth), kWidthBits(std::bit_width(width - 1)), kHeightBits(std::bit_width(height - 1)), data_(width * height * depth) {}
+	Buffer(CoordAxis width, CoordAxis height, CoordAxis depth) :
+			width_(width), height_(height), depth_(depth), width_bits(std::bit_width(width - 1)), height_bits(std::bit_width(height - 1)), data_(width * height * depth) {}
 
-	// 设置一个点的值
+	void init(const CoordAxis width, const CoordAxis height, const CoordAxis depth) {
+		ERR_FAIL_COND_MSG(width_ != 0 || height_ != 0 || depth_ != 0, "Buffer can only be initialized once time.");
+		width_ = width;
+		height_ = height;
+		depth_ = depth;
+		width_bits = std::bit_width(width - 1);
+		height_bits = std::bit_width(height - 1);
+		data_.resize(width * height * depth);
+	}
+
+	CoordAxis getWidth() const { return width_; }
+	CoordAxis getHeight() const { return height_; }
+	CoordAxis getDepth() const { return depth_; }
+
+	// 单点操作
 	void setVoxel(const Coord pos, const VoxelData data);
-	// 获取一个点的值
 	VoxelData getVoxel(const Coord pos) const;
-	// 设置位于(x, z)处，从buttom到top间的数据为data
-	void setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const VoxelData data);
-	// 设置位于(x, z)处，从buttom到top间的数据为data，data的size应当大于等于 top - buttom
-	void setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const std::vector<VoxelData> &data);
-	// 获取位于(x, z)处，从buttom到top间的数据
-	std::vector<VoxelData> getBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top) const;
-	// 设置begin到end两点围成的区域中的值，效果等同于遍历水平面，逐个调用setBar
-	void setBlock(const Coord begin, const Coord end, const VoxelData data);
 
-	// 序列化
-	void serialize(std::ostringstream &oss);
-	// 反序列化
-	void deserialize(std::istringstream &iss, const size_t size);
+	// 竖列操作
+	// 只有垂直方向上的数据是连续的，因此 setBar 只能处理竖列
+	void setBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top, const VoxelData data);
+	void setBar(const Coord &pos, const std::vector<VoxelData> &data);
+	std::vector<VoxelData> getBar(const CoordAxis x, const CoordAxis z, const CoordAxis buttom, const CoordAxis top) const;
+
+	// 块操作，等效于遍历块的底面，依次调用竖列操作
+	// 超出的部分会被忽略
+	void setBlock(const Coord begin, const Coord end, const VoxelData data);
+	void setBlock(const Coord pos, const Buffer &data);
+	Buffer getBlock(const Coord begin, const Coord end) const;
+
+	// 序列化/反序列化
+	void serialize(std::ostringstream &oss) const;
+	void deserialize(std::istringstream &iss, const uint32_t size);
 
 private:
-	const uint8_t kWidthBits, kHeightBits;
-	size_t pos_to_index(const Coord &pos) const {
-		return pgvoxel::pos_to_index(pos, kWidthBits, kHeightBits);
-	}
+	CoordAxis width_, height_, depth_;
+	uint8_t width_bits, height_bits;
 
 	// 在生成时一个buffer（比如一棵树）可能会被访问数百万遍，为了快速读取，加之本身体积不大，故不采用压缩
 	std::vector<VoxelData> data_;
